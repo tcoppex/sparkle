@@ -2,7 +2,7 @@
 # Spärkle
 
 
-![screenshot](img.png)
+![screenshot](https://i.imgur.com/TPVEcoe.png)
 
 Spärkle is a particle engine running entirely on the GPU, inspired by the work of SquareEnix Advance Technology Division on *Agni's Philosophy*.
 
@@ -20,6 +20,8 @@ Work in progess :
 
 - *Repulsion forces*,
 - *Mesh Targetting* 
+
+For more image, check the [gallery](https://imgur.com/a/uMMGV)
 
 ## Quickstart
 
