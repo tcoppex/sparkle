@@ -107,7 +107,9 @@ private:
 
   struct {
     struct {
-      GLint count;
+      GLint emitCount;
+      GLint emitterPosition;
+      GLint emitterDirection;
       GLint particleMaxAge;
     } emission;
     struct {
@@ -128,6 +130,7 @@ private:
     struct {
       GLint view;
       GLint mvp;
+      GLint spriteSizeRatio;
     } render_stretched_sprite;
   } ulocation_;                                   //< Programs uniform location.
 

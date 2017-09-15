@@ -2,7 +2,7 @@
 
 uniform mat4 uMVP;
 uniform mat4 uView;
-uniform float uSpriteSizeRatio = 50.0f;
+uniform float uSpriteSizeRatio;
 
 layout(points) in;
 layout(triangle_strip, max_vertices = 4) out;

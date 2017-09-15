@@ -231,7 +231,7 @@ vec3 GetCurlNoise(in const TParticle p) {
   vec3 curl = vec3(0.0f);
 
 #if ENABLE_CURLNOISE
-  const float effect = 1.0f;
+  const float effect = 5.0f;
   const float scale = 1.0f / 128.0f;
   curl = effect * compute_curl(p.position.xyz * scale);
 #endif
@@ -330,14 +330,13 @@ void main() {
 
     // Get curling noise.
     vec3 noise_vel = GetCurlNoise(p);
-
     // ----------
-    vel += noise_vel; noise_vel *= 0.0f;
-    vel = 10*normalize(vel);
+    vel += noise_vel;
+    vel = 12.0*normalize(vel);
     // ----------
 
     // Integrate position.
-    vec3 pos = fma(vel + noise_vel, dt, p.position.xyz);
+    vec3 pos = fma(vel + 0.0*noise_vel, dt, p.position.xyz);
 
     // Handle collision.
     CollisionHandling(pos, vel);

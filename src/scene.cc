@@ -73,7 +73,7 @@ void Scene::render(mat4x4 const &view, mat4x4 const& viewProj) {
 
   mat4x4 mvp;
   vec4 color;
-
+/*
   // Simulation bounding box
   mat4x4_scale_iso(mvp, viewProj, gpu_particle_->simulation_box_size());
   vec4_set(color, 0.5f, 0.4f, 0.5f, 0.5f);
@@ -330,7 +330,7 @@ void Scene::setup_texture() {
   delete [] texdata;
 
   // bind here just for testing.
-  //glBindTexture(GL_TEXTURE_2D, gl_sprite_tex_);
+  glBindTexture(GL_TEXTURE_2D, gl_sprite_tex_);
 
   CHECKGLERROR();
 }

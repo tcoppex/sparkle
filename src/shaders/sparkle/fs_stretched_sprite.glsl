@@ -20,8 +20,7 @@ in GDataBlock {
 
 void main() {
   fragColor = compute_color(IN.color, IN.texcoord);
-  fragColor *= IN.decay;
-  //fragColor = vec4(IN.color, IN.decay);
+  fragColor *= IN.decay * 0.25;
 }
 
 // ----------------------------------------------------------------------------

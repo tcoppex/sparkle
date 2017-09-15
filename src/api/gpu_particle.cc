@@ -128,17 +128,20 @@ void GPUParticle::init() {
   delete [] src_buffer;
 
   /* Get uniform locations */
-  ulocation_.emission.count           = GetUniformLocation(pgm_.emission, "uEmitCount");
-  ulocation_.emission.particleMaxAge  = GetUniformLocation(pgm_.emission, "uParticleMaxAge");
-  ulocation_.simulation.deltaT        = GetUniformLocation(pgm_.simulation, "uDeltaT");
+  ulocation_.emission.emitCount        = GetUniformLocation(pgm_.emission, "uEmitCount");
+  ulocation_.emission.emitterPosition  = GetUniformLocation(pgm_.emission, "uEmitterPosition");
+  ulocation_.emission.emitterDirection = GetUniformLocation(pgm_.emission, "uEmittterDirection");
+  ulocation_.emission.particleMaxAge   = GetUniformLocation(pgm_.emission, "uParticleMaxAge");
+  ulocation_.simulation.deltaT             = GetUniformLocation(pgm_.simulation, "uDeltaT");
   ulocation_.simulation.vectorFieldSampler = GetUniformLocation(pgm_.simulation, "uVectorFieldSampler");
-  ulocation_.simulation.bboxSize      = GetUniformLocation(pgm_.simulation, "uBBoxSize");
-  ulocation_.calculate_dp.view        = GetUniformLocation(pgm_.calculate_dp, "uViewMatrix");
+  ulocation_.simulation.bboxSize           = GetUniformLocation(pgm_.simulation, "uBBoxSize");
+  ulocation_.calculate_dp.view  = GetUniformLocation(pgm_.calculate_dp, "uViewMatrix");
   ulocation_.sort_step.blockWidth     = GetUniformLocation(pgm_.sort_step, "uBlockWidth");
   ulocation_.sort_step.maxBlockWidth  = GetUniformLocation(pgm_.sort_step, "uMaxBlockWidth");
-  ulocation_.render_point_sprite.mvp  = GetUniformLocation(pgm_.render_point_sprite, "uMVP");
-  ulocation_.render_stretched_sprite.view = GetUniformLocation(pgm_.render_stretched_sprite, "uView");
-  ulocation_.render_stretched_sprite.mvp  = GetUniformLocation(pgm_.render_stretched_sprite, "uMVP");
+  ulocation_.render_point_sprite.mvp = GetUniformLocation(pgm_.render_point_sprite, "uMVP");
+  ulocation_.render_stretched_sprite.view            = GetUniformLocation(pgm_.render_stretched_sprite, "uView");
+  ulocation_.render_stretched_sprite.mvp             = GetUniformLocation(pgm_.render_stretched_sprite, "uMVP");
+  ulocation_.render_stretched_sprite.spriteSizeRatio = GetUniformLocation(pgm_.render_stretched_sprite, "uSpriteSizeRatio");
 
   /* One time uniform setting */
   glProgramUniform1i(pgm_.simulation,
@@ -255,6 +258,7 @@ void GPUParticle::render(mat4x4 const& view, mat4x4 const& viewProj) {
   {
     glUniformMatrix4fv(ulocation_.render_stretched_sprite.view, 1, GL_FALSE, (GLfloat *const)view);
     glUniformMatrix4fv(ulocation_.render_stretched_sprite.mvp,  1, GL_FALSE, (GLfloat *const)viewProj);
+    glUniform1f(ulocation_.render_stretched_sprite.spriteSizeRatio,  50.0f);
 #else
   glUseProgram(pgm_.render_point_sprite);
   {
@@ -369,7 +373,9 @@ void GPUParticle::_emission(const unsigned int count) {
 
   glUseProgram(pgm_.emission);
   {
-    glUniform1ui(ulocation_.emission.count, count);
+    glUniform1ui(ulocation_.emission.emitCount, count);
+    glUniform3f(ulocation_.emission.emitterPosition, 0.0f, 0.0f, 0.0f);
+    glUniform3f(ulocation_.emission.emitterDirection, 0.0f, 1.0f, 0.0f);
     glUniform1f(ulocation_.emission.particleMaxAge, params_.max_age);
 
     unsigned int const nGroups = GetThreadsGroupCount(count);

@@ -17,7 +17,8 @@ out VDataBlock {
 void main() {
   vec3 pos = uScaleFactor * vec3(inPosition.x, 0.0f, inPosition.y);
   bool main_axis = any(equal(inPosition.xy, vec2(0.0f)));
-  vec3 axis_color = (vec3(1.0f) - step(vec3(0.0f), -abs(pos))) * 0.75f;
+  vec3 axis_color = (vec3(1.0f) - step(abs(pos), vec3(0.0f))) * 0.75f;
+
   OUT.color.rgb = (main_axis) ? axis_color : uGridColor.rgb;
   OUT.color.a = uGridColor.a;
 

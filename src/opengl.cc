@@ -81,6 +81,15 @@ void ReadShaderFile(char const* filename, unsigned int const maxsize, char out[]
   }
 }
 
+static
+unsigned int CountChar(char const* str, unsigned int n, char c) {
+  unsigned int count = 0u;
+  for (unsigned int i=0u; i<n && str[i] != '\0'; ++i) {
+    count += (str[i] == c) ? 1u : 0u;
+  }
+  return count;
+}
+
 /* Read the shader and process the #include preprocessors. */
 static
 void ReadShaderFile(char const* filename, unsigned int const maxsize, char out[], int *level) {
@@ -103,7 +112,9 @@ void ReadShaderFile(char const* filename, unsigned int const maxsize, char out[]
 
   /* Check for include file an retrieve its name */
   last = out;
+  //unsigned int newline_count = 0u;
   while (NULL != (first = strstr(last, substr))) {
+    //newline_count = CountChar(last, first-last, '\n');
 
     /* pass commented include directives */
     if ((first != out) && (*(first-1) != '\n')) {
@@ -127,6 +138,8 @@ void ReadShaderFile(char const* filename, unsigned int const maxsize, char out[]
       if (*c == '\n') ++newline_count;
     }
 
+    newline_count += CountChar(last, last-first, '\n');
+
     /* Set include global path */
     sprintf(include_path, "%s/%s", SHADERS_DIR, include_fn);
 
@@ -142,7 +155,7 @@ void ReadShaderFile(char const* filename, unsigned int const maxsize, char out[]
     ReadShaderFile(include_path, maxsize, include_file, level);
 
     /* Add the line directive to the included file */
-    sprintf(include_file, "%s\n#line %u", include_file, newline_count + 1u); // [incorrect]
+    sprintf(include_file, "%s\n#line %u", include_file, newline_count); // [incorrect]
 
     /* Add the second part of the shader */
     last = strchr(last, '\n');

@@ -26,7 +26,7 @@
 #define NOISE_ENABLE_TILING   0
 #define NOISE_TILE_RES        vec3(512.0f)
 
-uniform int uPerlinNoisePermutationSeed = 0;
+uniform int uPerlinNoisePermutationSeed;
 
 //------------------------------------------------------------------------------
 
