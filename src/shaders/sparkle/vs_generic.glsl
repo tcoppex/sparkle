@@ -1,4 +1,4 @@
-#version 430 core
+#version 450 core
 
 // ----------------------------------------------------------------------------
 
@@ -43,7 +43,7 @@ float curve_inout(in float x, in float edge) {
 
 float compute_size(float z, float decay) {
   const float min_size = 1.0f;
-  const float max_size = 1.0f;
+  const float max_size = 6.0f;
   const float depth = 1.0f;//  / (z);
 
   float size = mix(min_size, max_size, decay * depth);

@@ -8,8 +8,6 @@
 
 uniform sampler2D uSpriteSampler2d;
 
-layout(location = 0) out vec4 fragColor;
-
 in VDataBlock {
   vec3 position; // unused legacy of vs_generic
   vec3 velocity; // idem
@@ -17,6 +15,8 @@ in VDataBlock {
   float decay;
   float pointSize;
 } IN;
+
+out vec4 fragColor;
 
 // ----------------------------------------------------------------------------
 
