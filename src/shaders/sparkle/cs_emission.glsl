@@ -12,10 +12,10 @@
 
 //-----------------------------------------------------------------------------
 
-uniform uint uEmitCount;
-uniform vec3 uEmitterPosition;
-uniform vec3 uEmitterDirection;
-uniform float uParticleMaxAge;
+layout(location=0) uniform uint uEmitCount;
+layout(location=1) uniform vec3 uEmitterPosition;
+layout(location=2) uniform vec3 uEmitterDirection;
+layout(location=3) uniform float uParticleMaxAge;
 
 //-----------------------------------------------------------------------------
 
