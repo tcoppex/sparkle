@@ -2,6 +2,8 @@
 
 #include <array>
 #include <vector>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include "api/gpu_particle.h"
 
 // compressed hard-coded sprite for testing.
@@ -47,11 +49,11 @@ void Scene::deinit() {
   glDeleteBuffers(1u, &geo_.sphere.vbo);
 }
 
-void Scene::update(mat4x4 const &view, float const dt) {
+void Scene::update(glm::mat4x4 const &view, float const dt) {
   gpu_particle_->update(dt, view);
 }
 
-void Scene::render(mat4x4 const &view, mat4x4 const& viewProj) {
+void Scene::render(glm::mat4x4 const &view, glm::mat4x4 const& viewProj) {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   /* Grid */
@@ -71,18 +73,18 @@ void Scene::render(mat4x4 const &view, mat4x4 const& viewProj) {
   glEnable(GL_DEPTH_TEST);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-  mat4x4 mvp;
-  vec4 color;
-/*
+  glm::mat4x4 mvp;
+  glm::vec4 color;
+
   // Simulation bounding box
-  mat4x4_scale_iso(mvp, viewProj, gpu_particle_->simulation_box_size());
-  vec4_set(color, 0.5f, 0.4f, 0.5f, 0.5f);
+  mvp = glm::scale(viewProj, glm::vec3(gpu_particle_->simulation_box_size()));
+  color = glm::vec4(0.5f, 0.4f, 0.5f, 0.5f);
   draw_wirecube(mvp, color);
 
   // Vector field bounding box
   glm::vec3 const& dim = gpu_particle_->vectorfield_dimensions();
-  mat4x4_scale_aniso(mvp, viewProj, dim.x, dim.y, dim.z);
-  vec4_set(color, 0.5f, 0.5f, 0.1f, 0.3f);
+  mvp = glm::scale(viewProj, glm::vec3(dim.x, dim.y, dim.z));
+  color = glm::vec4(0.5f, 0.5f, 0.1f, 0.3f);
   draw_wirecube(mvp, color);
 
   /*
@@ -336,10 +338,10 @@ void Scene::setup_texture() {
 }
 
 
-void Scene::draw_grid(mat4x4 const &mvp) {
+void Scene::draw_grid(glm::mat4x4 const &mvp) {
   glUseProgram(pgm_.grid);
   {
-    glUniformMatrix4fv(ulocation_.grid.mvp, 1, GL_FALSE, (GLfloat *const)mvp);
+    glUniformMatrix4fv(ulocation_.grid.mvp, 1, GL_FALSE, glm::value_ptr(mvp));
     glUniform1f(ulocation_.grid.scaleFactor, gpu_particle_->simulation_box_size());
 
     glBindVertexArray(geo_.grid.vao);
@@ -351,11 +353,11 @@ void Scene::draw_grid(mat4x4 const &mvp) {
   CHECKGLERROR();
 }
 
-void Scene::draw_wirecube(mat4x4 const &mvp, vec4 const &color) {
+void Scene::draw_wirecube(glm::mat4x4 const &mvp, glm::vec4 const &color) {
   glUseProgram(pgm_.basic);
   {
-    glUniformMatrix4fv(ulocation_.basic.mvp, 1, GL_FALSE, (GLfloat *const)mvp);
-    glUniform4fv(ulocation_.basic.color, 1u, (GLfloat *const)color);
+    glUniformMatrix4fv(ulocation_.basic.mvp, 1, GL_FALSE, glm::value_ptr(mvp));
+    glUniform4fv(ulocation_.basic.color, 1u, glm::value_ptr(color));
 
     glBindVertexArray(geo_.wirecube.vao);
       glDrawElements(GL_LINES, geo_.wirecube.nindices, geo_.wirecube.indices_type, nullptr);
@@ -366,11 +368,11 @@ void Scene::draw_wirecube(mat4x4 const &mvp, vec4 const &color) {
   CHECKGLERROR();
 }
 
-void Scene::draw_sphere(mat4x4 const &mvp, vec4 const &color) {
+void Scene::draw_sphere(glm::mat4x4 const &mvp, glm::vec4 const &color) {
   glUseProgram(pgm_.basic);
   {
-    glUniformMatrix4fv(ulocation_.basic.mvp, 1, GL_FALSE, (GLfloat *const)mvp);
-    glUniform4fv(ulocation_.basic.color, 1u, (GLfloat *const)color);
+    glUniformMatrix4fv(ulocation_.basic.mvp, 1, GL_FALSE, glm::value_ptr(mvp));
+    glUniform4fv(ulocation_.basic.color, 1u, glm::value_ptr(color));
 
     glBindVertexArray(geo_.sphere.vao);
       glDrawArrays(GL_LINES, 0, geo_.sphere.nvertices);

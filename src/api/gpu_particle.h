@@ -3,9 +3,9 @@
 
 /* -------------------------------------------------------------------------- */
 
+#include <glm/mat4x4.hpp>
+#include <glm/vec4.hpp>
 #include "opengl.h"
-#include "linmath.h"
-
 #include "api/random_buffer.h"
 #include "api/vector_field.h"
 
@@ -40,8 +40,8 @@ public:
   void init();
   void deinit();
 
-  void update(float const dt, mat4x4 const& view);
-  void render(mat4x4 const& view, mat4x4 const& viewProj);
+  void update(float const dt, glm::mat4x4 const& view);
+  void render(glm::mat4x4 const& view, glm::mat4x4 const& viewProj);
 
   inline const glm::uvec3& vectorfield_dimensions() const {
     return vectorfield_.dimensions();
@@ -79,7 +79,7 @@ private:
   void _emission(unsigned int const count);
   void _simulation(float const dt);
   void _postprocess();
-  void _sorting(mat4x4 const& view);
+  void _sorting(glm::mat4x4 const& view);
 
   //------------------------------
 

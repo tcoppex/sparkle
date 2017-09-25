@@ -4,7 +4,8 @@
 #include <cstdio>
 #include <ctime>
 
-#include "GLFW/glfw3.h"
+#include <glm/gtc/matrix_transform.hpp>
+#include <GLFW/glfw3.h>
 
 #include "events.h"
 
@@ -55,8 +56,8 @@ bool App::init(char const* title) {
 
   /* Setup the projection matrix */
   float const aspectRatio = w / static_cast<float>(h);
-  mat4x4_perspective(matrix_.proj,
-    degreesToRadians(60.0f), aspectRatio, 0.01f, 2000.0f
+  matrix_.proj = glm::perspective(
+    glm::radians(60.0f), aspectRatio, 0.01f, 2000.0f
   );
 
   /* Initialize the scene. */
@@ -113,19 +114,19 @@ void App::_update_camera() {
   );
 
   /* Compute the view matrix */
-  mat4x4_identity(matrix_.view);
+  matrix_.view = glm::mat4(1.0f);
+  matrix_.view = glm::lookAt(glm::vec3(0.0f, 0.65f*camera_.dolly(), camera_.dolly()),
+                             glm::vec3(0.0f, 0.0f, 0.0f),
+                             glm::vec3(0.0f, 1.0f, 0.0f));
+  glm::translate(matrix_.view, glm::vec3(camera_.translate_x(), camera_.translate_y(), 0.0f));
 
-  vec3 eye    = {0.0f, 0.65f*camera_.dolly(), camera_.dolly()};
-  vec3 center = {0.0f, 0.0f, 0.0f};
-  vec3 up     = {0.0f, 1.0f, 0.0f};
-  mat4x4_look_at(matrix_.view, eye, center, up);
-  mat4x4_translate_in_place(matrix_.view, camera_.translate_x(), camera_.translate_y(), 0.0f);
-  mat4x4 rX;
-  mat4x4_rotate_X(rX, matrix_.view, camera_.yaw());
-  mat4x4_rotate_Y(matrix_.view, rX, camera_.pitch());
+  matrix_.view = glm::rotate(glm::rotate(
+    matrix_.view, camera_.yaw(), glm::vec3(1.0f, 0.0f, 0.0f)),
+    camera_.pitch(), glm::vec3(0.0f, 1.0f, 0.0f)
+  );
 
   /* Update the viewproj matrix */
-  mat4x4_mul(matrix_.viewProj, matrix_.proj, matrix_.view);
+  matrix_.viewProj = matrix_.proj * matrix_.view;
 }
 
 void App::_update_time() {

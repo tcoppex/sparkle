@@ -4,7 +4,7 @@
 // ----------------------------------------------------------------------------
 
 #include <chrono>
-#include "linmath.h"
+#include "glm/mat4x4.hpp"
 #include "arcball_camera.h"
 #include "scene.h"
 
@@ -35,9 +35,9 @@ class App {
   ArcBallCamera camera_;
 
   struct {
-    mat4x4 view;
-    mat4x4 proj;
-    mat4x4 viewProj;
+    glm::mat4x4 view;
+    glm::mat4x4 proj;
+    glm::mat4x4 viewProj;
   } matrix_;
 
   Scene scene_;

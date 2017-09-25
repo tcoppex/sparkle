@@ -101,7 +101,7 @@ endif(USE_GLEW)
 
 set(TARGET_NAME "${CMAKE_PROJECT_NAME}_demo")
 
-file(GLOB Sources ${SOURCE_DIR}/*.cc ${SOURCE_DIR}/api/*.cc )
+file(GLOB Sources ${SOURCE_DIR}/*.cc ${SOURCE_DIR}/api/*.cc)
 file(GLOB Headers ${SOURCE_DIR}/*.h ${SOURCE_DIR}/api/*.h )
 file(GLOB_RECURSE Miscs ${SHADERS_DIR}/*.glsl ${SHADERS_DIR}/*.h)
 

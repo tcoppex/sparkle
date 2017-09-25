@@ -57,7 +57,7 @@ class ArcBallCamera {
     float const dv_y = mouseY - last_mouse_y_;
 
     if (btnRotate) {
-      pitch_ -= dv_x * kMouseRAcceleration;
+      pitch_ += dv_x * kMouseRAcceleration;
       yaw_   += dv_y * kMouseRAcceleration;
       pitch_ = fmod(pitch_, kAngleModulo);
       yaw_   = fmod(yaw_, kAngleModulo);

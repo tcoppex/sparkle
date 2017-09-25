@@ -4,8 +4,8 @@
 // ----------------------------------------------------------------------------
 
 #include "opengl.h"
-#include "linmath.h"
-
+#include "glm/mat4x4.hpp"
+#include "glm/vec4.hpp"
 class GPUParticle;
 
 // ----------------------------------------------------------------------------
@@ -19,8 +19,8 @@ class Scene {
   void init();
   void deinit();
 
-  void update(mat4x4 const& view, float const dt);
-  void render(mat4x4 const &view, mat4x4 const& viewProj);
+  void update(glm::mat4x4 const& view, float const dt);
+  void render(glm::mat4x4 const &view, glm::mat4x4 const& viewProj);
 
  private:
   void setup_shaders();
@@ -30,9 +30,9 @@ class Scene {
   void setup_texture();
 
 
-  void draw_grid(mat4x4 const &mvp);
-  void draw_wirecube(mat4x4 const &mvp, const vec4 &color);
-  void draw_sphere(mat4x4 const &mvp, const vec4 &color);
+  void draw_grid(glm::mat4x4 const &mvp);
+  void draw_wirecube(glm::mat4x4 const &mvp, const glm::vec4 &color);
+  void draw_sphere(glm::mat4x4 const &mvp, const glm::vec4 &color);
 
   struct {
     struct {

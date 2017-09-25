@@ -71,6 +71,10 @@
 * In TParticle position & velocity are vec4 but only their three first
 * components are currently used.
 */
+#ifdef __cplusplus
+typedef glm::vec4 vec4;
+#endif
+
 struct TParticle {
   vec4 position;
   vec4 velocity;

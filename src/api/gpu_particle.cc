@@ -1,6 +1,9 @@
 #include "api/gpu_particle.h"
-#include "api/append_consume_buffer.h"
 
+#include <cstdio>
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include "api/append_consume_buffer.h"
 #include "shaders/sparkle/interop.h"
 
 /* ========================================================================== */
@@ -91,7 +94,7 @@ void GPUParticle::init() {
   fprintf(stderr, "[ %u particles, %u per batch ]\n", num_particles , kBatchEmitCount);
 
   /* Append/Consume Buffer */
-  unsigned int const num_attrib_buffer = (sizeof(TParticle) + sizeof(vec4) - 1u) / sizeof(vec4); //
+  unsigned int const num_attrib_buffer = (sizeof(TParticle) + sizeof(glm::vec4) - 1u) / sizeof(glm::vec4); //
   pbuffer_ = new AppendConsumeBuffer(num_particles, num_attrib_buffer);
   pbuffer_->initialize();
 
@@ -216,7 +219,7 @@ void GPUParticle::deinit() {
   glDeleteQueries(1, &query_time_);
 }
 
-void GPUParticle::update(const float dt, mat4x4 const& view) {
+void GPUParticle::update(const float dt, glm::mat4x4 const& view) {
   /* Max number of particles able to be spawned. */
   unsigned int const num_dead_particles = pbuffer_->element_count() - num_alive_particles_;
   /* Number of particles to be emitted. */
@@ -252,12 +255,12 @@ void GPUParticle::update(const float dt, mat4x4 const& view) {
   CHECKGLERROR();
 }
 
-void GPUParticle::render(mat4x4 const& view, mat4x4 const& viewProj) {
+void GPUParticle::render(glm::mat4x4 const& view, glm::mat4x4 const& viewProj) {
 #if 1
   glUseProgram(pgm_.render_stretched_sprite);
   {
-    glUniformMatrix4fv(ulocation_.render_stretched_sprite.view, 1, GL_FALSE, (GLfloat *const)view);
-    glUniformMatrix4fv(ulocation_.render_stretched_sprite.mvp,  1, GL_FALSE, (GLfloat *const)viewProj);
+    glUniformMatrix4fv(ulocation_.render_stretched_sprite.view, 1, GL_FALSE, glm::value_ptr(view));
+    glUniformMatrix4fv(ulocation_.render_stretched_sprite.mvp,  1, GL_FALSE, glm::value_ptr(viewProj));
     glUniform1f(ulocation_.render_stretched_sprite.spriteSizeRatio,  50.0f);
 #else
   glUseProgram(pgm_.render_point_sprite);
@@ -441,7 +444,7 @@ void GPUParticle::_simulation(float const dt) {
 }
 
 
-void GPUParticle::_sorting(mat4x4 const& view) {
+void GPUParticle::_sorting(glm::mat4x4 const& view) {
   /** @note there is probably some remaining issues on kernels boundaries.*/
 
   /* The algorithm works on buffer sized in power of two. */
@@ -471,7 +474,7 @@ void GPUParticle::_sorting(mat4x4 const& view) {
   {
     /// @note No kernel boundaries check performed.
     unsigned int const num_groups = GetThreadsGroupCount(num_alive_particles_); //
-    glUniformMatrix4fv(ulocation_.calculate_dp.view, 1, GL_FALSE, (GLfloat *const)view);
+    glUniformMatrix4fv(ulocation_.calculate_dp.view, 1, GL_FALSE, glm::value_ptr(view));
     glDispatchCompute(num_groups, 1u, 1u);
   }
   glUseProgram(0u);

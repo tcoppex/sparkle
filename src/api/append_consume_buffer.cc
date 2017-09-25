@@ -1,6 +1,6 @@
 #include "api/append_consume_buffer.h"
 
-#include "linmath.h" //
+#include <glm/vec4.hpp>
 #include "shaders/sparkle/interop.h"
 
 /* -------------------------------------------------------------------------- */
