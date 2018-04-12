@@ -1,14 +1,13 @@
 
 # Spärkle
 
-
 ![screenshot](https://i.imgur.com/TPVEcoe.png)
 
 Spärkle is a particle engine running entirely on the GPU, inspired by the work of SquareEnix Advance Technology Division on *Agni's Philosophy*.
 
-It is written in **C++ 11** and **OpenGL 4.x**.
+It is written in **C++ 14** and **OpenGL 4.4**.
 
-## Feature
+## Features
 
 - Complete Compute Shader based GPU pipeline,
 - Bitonic Sorting for alpha-blending,
@@ -16,69 +15,58 @@ It is written in **C++ 11** and **OpenGL 4.x**.
 - 3D Vector Field,
 - *Structure of Arrays* and *Array of Structures* data layout patterns,
 
-Work in progess :
-
-- *Repulsion forces*,
-- *Mesh Targetting* 
-
 For more image, check the [gallery](https://imgur.com/a/uMMGV)
 
 ## Quickstart
 
+We will be using the command-line on Unix or [Git Bash](https://git-for-windows.github.io/) on Windows.
+
 ### Dependencies
 
-- [GLFW 3.x](https://github.com/glfw/glfw/tree/3.0),
-- [GLM 9.8](https://github.com/g-truc/glm/releases/tag/0.9.8.0).
-- OpenGL extensions are generated automatically by a custom [Python](https://www.python.org/downloads/) script, but optionnally [GLEW](http://glew.sourceforge.net/) can also be used.
+The following dependencies are pulled in as submodules.
+
+- [GLFW 3.2.1](https://github.com/glfw/glfw) as Window Manager,
+- [GLM 9.8](https://github.com/g-truc/glm/releases/tag/0.9.8.1) as mathematics library.
+
+To retrieve them, type the following command line in the project directory :
+```
+$ git submodule init
+```
 
 ### Build
 
-Using a command-line on Unix or [Git Bash](https://git-for-windows.github.io/) on Windows, first create a build directory:
+We will first create a build directory then generate the CMake cache depending on your system.
+
 ```
-$ mkdir build
-$ cd build
+$ mkdir BUILDs && cd BUILDs
 ```
 
-Then generate the Cmake Cache depending on your system:
-
-#### Unix
-
-Using Makefile:
-
+On **Unix**, using Makefile:
 ```
 $ cmake .. -G Makefile -DCMAKE_BUILD_TYPE=Release
+$ make -j4
 ```
 
-To build type:
-```
-$ make -j
-```
-
-#### Windows
-
-Using MSVC 15 for x64:
+On **Windows**, using MSVC 15 for x64:
 ```
 $ cmake .. -G "Visual Studio 15 2017 Win64"
-```
-
-To build type:
-```
 $ cmake --build . --target all --config Release
 ```
 
-*Note: using CMake, the build configuration type (ie. Debug, Release) is set at Build Time with MSVC and at Cache Generation Time with Makefile.*
+*Notes:*
+
+ 1. *Using CMake, the build configuration type (ie. Debug, Release) is set at Build Time with MSVC and at Cache Generation Time with Makefile.*
+
+ 2. *OpenGL extensions are generated automatically by a custom [Python](https://www.python.org/downloads/) script.  Optionnally [GLEW](http://glew.sourceforge.net/) can be used instead by specifying the option ` -DUSE_GLEW=ON` to CMake.*
 
 ### Run
 
-To run, go to the bin directory:
+The binary can be found in the project `./bin/` directory:
 ```
-$ cd ../bin
-$ ./sparkle_demo
+$ ../bin/sparkle_demo
 ```
 
 [//]: # (## Directory structure)
-
-
 [//]: # (## Known bugs)
 
 ---
