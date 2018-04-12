@@ -46,9 +46,6 @@ set(OUTPUT_DIR            ${CMAKE_SOURCE_DIR}/bin)
 set(THIRDPARTY            ${CMAKE_SOURCE_DIR}/thirdparty)
 set(TOOLS                 ${CMAKE_SOURCE_DIR}/tools)
 
-#add_definitions(-DSHADERS_DIR="${SHADERS_DIR}")
-
-
 # -----------------------------------------------------------------------------
 # Compiler settings.
 # -----------------------------------------------------------------------------
@@ -121,23 +118,27 @@ else()
     set(GLEXTGEN_PATH "${TOOLS}/glextgen")
     set(GLEXTGEN_OUTPUT_DIR "${SOURCE_DIR}/ext")
     add_custom_command(
-        OUTPUT
-          ${GLEXTGEN_OUTPUT_DIR}/_extensions.h
-        COMMAND
-          ${PYTHON_EXECUTABLE} "${GLEXTGEN_PATH}/main.py"
-                               "${GLEXTGEN_PATH}/extensions"
-                               "${GLEXTGEN_OUTPUT_DIR}"
-        DEPENDS
-          "${GLEXTGEN_PATH}/main.py"
-          "${GLEXTGEN_PATH}/extensions"
-        WORKING_DIRECTORY
-          ${CMAKE_SOURCE_DIR}
-        COMMENT
-          "Generate OpenGL extensions headers !!" VERBATIM
+      OUTPUT
+        ${GLEXTGEN_OUTPUT_DIR}/_extensions.h
+      COMMAND
+        ${PYTHON_EXECUTABLE} "${GLEXTGEN_PATH}/main.py"
+                             "${GLEXTGEN_PATH}/extensions"
+                             "${GLEXTGEN_OUTPUT_DIR}"
+      DEPENDS
+        "${GLEXTGEN_PATH}/main.py"
+        "${GLEXTGEN_PATH}/extensions"
+      WORKING_DIRECTORY
+        ${CMAKE_SOURCE_DIR}
+      COMMENT
+        "Generate OpenGL extensions headers !!" VERBATIM
     )
     list(APPEND GLEXTGEN_OUTPUTS 
       ${GLEXTGEN_OUTPUT_DIR}/_extensions.h
       ${GLEXTGEN_OUTPUT_DIR}/_extensions.inl
+    )
+    add_custom_target(GLEXTGEN_target
+      ALL
+      DEPENDS ${GLEXTGEN_OUTPUTS}
     )
   else()
     message(FATAL_ERROR "You need either the Python interpreter "
@@ -155,8 +156,10 @@ set(GLFW_ROOT ${THIRDPARTY}/glfw)
 set(GLFW_LIBRARY glfw)
 set(GLFW_INCLUDE_DIR ${GLFW_ROOT}/include)
 if(NOT EXISTS ${GLFW_INCLUDE_DIR})
-  message(FATAL_ERROR "You need to initialize git submodules via the command : "
-                      "git submodule init")
+  message(FATAL_ERROR "You need to initialize git submodules via the command : \n"
+                      "git submodule init\n"
+                      "git submodule update"
+  )
 endif()
 add_subdirectory(${GLFW_ROOT} glfw EXCLUDE_FROM_ALL)
 

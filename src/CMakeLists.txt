@@ -35,7 +35,6 @@ add_executable(${TARGET_NAME}
   ${Sources}
   ${Headers}
   ${Miscs}
-  ${GLEXTGEN_OUTPUTS} 
 )
 
 target_compile_options(${TARGET_NAME} PRIVATE
