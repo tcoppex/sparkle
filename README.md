@@ -19,7 +19,7 @@ For more image, check the [gallery](https://imgur.com/a/uMMGV)
 
 ## Quickstart
 
-We will be using the command-line on Unix or [Git Bash](https://git-for-windows.github.io/) on Windows.
+We will be using the command-line on Unix and [Git Bash](https://git-for-windows.github.io/) on Windows.
 
 ### Dependencies
 
@@ -31,6 +31,7 @@ The following dependencies are pulled in as submodules.
 To retrieve them, type the following command line in the project directory :
 ```
 $ git submodule init
+$ git submodule update
 ```
 
 ### Build
