@@ -1,163 +1,198 @@
 # -----------------------------------------------------------------------------
 # CMake configuration file
 # 
-# The variables GLM_INCLUDE_DIR and GLFW_LOCATION might need to be set for
-# compilation to succeed.
 # -----------------------------------------------------------------------------
+cmake_minimum_required(VERSION 3.2.0)
 
-
-cmake_minimum_required(VERSION 3.1)
-
-project(sparkle)
+project(sparkle VERSION 0.1 LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 14)
 
 # -----------------------------------------------------------------------------
-
-# Options
-# -------
-
-#cmake_policy(SET CMP0054 NEW)
-
-# Force the use of GLEW - if found - to handle OpenGL extensions,
-# otherwise a python script will generate functions loaders.
-set(USE_GLEW OFF)
-
+# CMake options.
 # -----------------------------------------------------------------------------
 
-# Paths
-# -----
-
-# cmake extensions path
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
-
-# project paths
-set(SOURCE_DIR      "${CMAKE_SOURCE_DIR}/src")
-set(SHADERS_DIR     "${SOURCE_DIR}/shaders")
-set(THIRDPARTY      "${CMAKE_SOURCE_DIR}/thirdparty")
-set(TOOLS           "${CMAKE_SOURCE_DIR}/tools")
-set(OUTPUT_DIR      "${CMAKE_SOURCE_DIR}/bin")
-
-add_definitions(-DSHADERS_DIR="${SHADERS_DIR}")
-
-# Default output directory.
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${OUTPUT_DIR})
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${OUTPUT_DIR})
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${OUTPUT_DIR})
-
-# Force output directory destination, especially for MSVC (@so7747857).
-function(setTargetOutputDirectory target)
-  foreach(type RUNTIME LIBRARY ARCHIVE)
-    set_target_properties(${target} PROPERTIES
-      ${type}_OUTPUT_DIRECTORY         ${CMAKE_${type}_OUTPUT_DIRECTORY}
-      ${type}_OUTPUT_DIRECTORY_DEBUG   ${CMAKE_${type}_OUTPUT_DIRECTORY}
-      ${type}_OUTPUT_DIRECTORY_RELEASE ${CMAKE_${type}_OUTPUT_DIRECTORY}
-    )
-  endforeach()
-endfunction()
-
+# GLEW is optional and not provided, by default extensions are loaded manually.
+option(USE_GLEW OFF)
 
 # -----------------------------------------------------------------------------
+# CMake includes.
+# -----------------------------------------------------------------------------
 
-# Compiler detection
-# ------------------
+# CMake module path.
+set(MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
+list(APPEND CMAKE_MODULE_PATH ${MODULE_PATH})
 
-if(   (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-   OR (CMAKE_CXX_COMPILER_ID STREQUAL "Clang"))
-  set(CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -std=c++11")
-  set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} \
-    -g -O0 -Wall -Wextra -pedantic \
-    -Wno-unused-function -Wno-unused-parameter -Wno-missing-field-initializers")
-  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O2 -DNDEBUG")
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-  set(CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} /Za")
-  set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} /W2 /DEBUG")
-  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MP /Ox /INCREMENTAL:NO /DNDEBUG")
-  add_definitions(/D_CRT_SECURE_NO_WARNINGS)
-elseif(CMAKE_CXX_COMPILER)
-  message(WARNING "Untested compiler: \"${CMAKE_CXX_COMPILER_ID}\".")
+# Custom CMake helpers.
+include(Helpers)
+
+# -----------------------------------------------------------------------------
+# Build parameters.
+# -----------------------------------------------------------------------------
+
+if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+  set(DEBUG TRUE)
 else()
-  message(FATAL_ERROR "No compiler found.")
+  set(DEBUG FALSE)
 endif()
 
-
+# -----------------------------------------------------------------------------
+# Paths.
 # -----------------------------------------------------------------------------
 
-# Dependencies
-# ------------
+# Project's paths.
+set(SOURCE_DIR            ${CMAKE_SOURCE_DIR}/src)
+set(SHADERS_DIR           ${SOURCE_DIR}/shaders)
+set(OUTPUT_DIR            ${CMAKE_SOURCE_DIR}/bin)
+set(THIRDPARTY            ${CMAKE_SOURCE_DIR}/thirdparty)
+set(TOOLS                 ${CMAKE_SOURCE_DIR}/tools)
 
-find_package(GLFW REQUIRED)
+#add_definitions(-DSHADERS_DIR="${SHADERS_DIR}")
+
+
+# -----------------------------------------------------------------------------
+# Compiler settings.
+# -----------------------------------------------------------------------------
+
+# Used to bypass MSVC settings.
+set_global_output_directory(${OUTPUT_DIR})
+
+# Check the compiler version.
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  find_gcc(5.3.1)
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+  if (MSVC_VERSION LESS 1900)
+    message(FATAL_ERROR 
+      "Your version of MSVC is too low, please upgrade to version 14.x+"
+    )
+  endif()
+endif()
+
+# Compiler and linker flags.
+if(   (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+   OR (CMAKE_CXX_COMPILER_ID STREQUAL "Clang"))
+  list(APPEND CXX_FLAGS 
+    -Wall -Wextra -Wpedantic
+    -Wnon-virtual-dtor -Woverloaded-virtual
+    -Wuseless-cast -Wcast-align
+    #-Wold-style-cast
+    #-Wshadow
+    -Wlogical-op
+    -Wno-unused-function -Wno-unused-parameter -Wno-missing-field-initializers
+    -fvisibility=hidden -fno-strict-aliasing -fno-builtin-memcmp
+  )
+  list(APPEND CXX_FLAGS_RELEASE -O2)
+  list(APPEND CXX_FLAGS_DEBUG   -g -O0 -Wconversion)
+
+  #list(APPEND LINK_FLAGS -Wl,--no-undefined)
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+  list(APPEND CXX_FLAGS
+    /W4 /W44640
+    /MP /EHsc-
+  )
+  list(APPEND CXX_FLAGS_DEBUG   /Zi)
+  list(APPEND CXX_FLAGS_RELEASE /Ox /INCREMENTAL:NO /DEBUG:NONE /DNDEBUG)
+
+  list(APPEND AerDefinitions 
+    NOMINMAX
+    WIN32
+    _WINDOWS
+    _CRT_SECURE_NO_WARNINGS
+  )
+else()
+  message(WARNING "The compiler ${CMAKE_CXX_COMPILER_ID} has not been tested yet.")
+endif()
+
+# -----------------------------------------------------------------------------
+# Thirdparties dependencies.
+# -----------------------------------------------------------------------------
+
 find_package(OpenGL REQUIRED)
 
+# Extensions loader.
 if(USE_GLEW)
   find_package(GLEW 1.13 REQUIRED)
   if(${GLEW_FOUND})
-    add_definitions(-DUSE_GLEW)
+    list(APPEND Definitions -DUSE_GLEW)
   endif()
+else()
+  # Automatically generate header to load OpenGL extensions.
+  find_package(PythonInterp REQUIRED)
+  if(${PYTHONINTERP_FOUND})
+    set(GLEXTGEN_PATH "${TOOLS}/glextgen")
+    set(GLEXTGEN_OUTPUT_DIR "${SOURCE_DIR}/ext")
+    add_custom_command(
+        OUTPUT
+          ${GLEXTGEN_OUTPUT_DIR}/_extensions.h
+        COMMAND
+          ${PYTHON_EXECUTABLE} "${GLEXTGEN_PATH}/main.py"
+                               "${GLEXTGEN_PATH}/extensions"
+                               "${GLEXTGEN_OUTPUT_DIR}"
+        DEPENDS
+          "${GLEXTGEN_PATH}/main.py"
+          "${GLEXTGEN_PATH}/extensions"
+        WORKING_DIRECTORY
+          ${CMAKE_SOURCE_DIR}
+        COMMENT
+          "Generate OpenGL extensions headers !!" VERBATIM
+    )
+    list(APPEND GLEXTGEN_OUTPUTS 
+      ${GLEXTGEN_OUTPUT_DIR}/_extensions.h
+      ${GLEXTGEN_OUTPUT_DIR}/_extensions.inl
+    )
+  else()
+    message(FATAL_ERROR "You need either the Python interpreter "
+                        "or the GLEW library to handle OpenGL extensions.")
+  endif()
+  list(APPEND ADDITIONAL_MAKE_CLEAN_FILES "${GLEXTGEN_OUTPUT_DIR}")
 endif(USE_GLEW)
 
 # -----------------------------------------------------------------------------
+# Thirdparties Submodule dependencies.
+# -----------------------------------------------------------------------------
 
-# Main target build
-# -----------------
+# GLFW as window manager.
+set(GLFW_ROOT ${THIRDPARTY}/glfw)
+set(GLFW_LIBRARY glfw)
+set(GLFW_INCLUDE_DIR ${GLFW_ROOT}/include)
+if(NOT EXISTS ${GLFW_INCLUDE_DIR})
+  message(FATAL_ERROR "You need to initialize git submodules via the command : "
+                      "git submodule init")
+endif()
+add_subdirectory(${GLFW_ROOT} glfw EXCLUDE_FROM_ALL)
 
-set(TARGET_NAME "${CMAKE_PROJECT_NAME}_demo")
+# GLM as math library.
+set(GLM_INCLUDE_DIR ${THIRDPARTY}/glm)
 
-file(GLOB Sources ${SOURCE_DIR}/*.cc ${SOURCE_DIR}/api/*.cc)
-file(GLOB Headers ${SOURCE_DIR}/*.h ${SOURCE_DIR}/api/*.h )
-file(GLOB_RECURSE Miscs ${SHADERS_DIR}/*.glsl ${SHADERS_DIR}/*.h)
+# -----------------------------------------------------------------------------
+# Compilation settings.
+# -----------------------------------------------------------------------------
 
-add_executable(${TARGET_NAME}
-  ${Sources}
-  ${Headers}
-  ${Miscs}
+# Definitions
+list(APPEND Definitions 
+  -DSHADERS_DIR="${SHADERS_DIR}"
 )
 
-include_directories(
+# Include directories
+list(APPEND IncludeDirs
   ${SOURCE_DIR}
   ${SHADERS_DIR}
-  ${THIRDPARTY}
   ${GLFW_INCLUDE_DIR}
   ${OPENGL_INCLUDE_DIRS}
   ${GLEW_INCLUDE_DIRS}
   ${GLM_INCLUDE_DIR}
 )
 
-target_link_libraries(${TARGET_NAME}
-  ${GLFW_LIBRARIES}
+# Libraries
+list(APPEND Libs
+  ${GLFW_LIBRARY}
   ${OPENGL_LIBRARIES}
   ${GLEW_LIBRARIES}
 )
 
 # -----------------------------------------------------------------------------
+# Files
+# -----------------------------------------------------------------------------
 
-# Custom command
-# --------------
-
-if(NOT USE_GLEW)
-  # Automatically generate header to load OpenGL extensions
-  find_package(PythonInterp)
-  if(${PYTHONINTERP_FOUND})
-    set(GLEXTGEN_PATH "${TOOLS}/glextgen")
-    set(GLEXTGEN_OUTPUT_DIR "${SOURCE_DIR}/ext")
-    add_custom_target(
-      OpenGLExtensionGenerator
-      COMMAND
-        ${PYTHON_EXECUTABLE} "${GLEXTGEN_PATH}/main.py"
-                             "${GLEXTGEN_PATH}/extensions"
-                             "${GLEXTGEN_OUTPUT_DIR}"
-      WORKING_DIRECTORY
-        ${CMAKE_SOURCE_DIR}
-      COMMENT
-        "Generate OpenGL extensions headers" VERBATIM
-      SOURCES
-          "${GLEXTGEN_PATH}/main.py"
-          "${GLEXTGEN_PATH}/extensions"
-    )
-    # TODO not ideal cause it force recompilation every time
-    # best to specify outputs file where TARGET depends on.
-    add_dependencies(${TARGET_NAME} OpenGLExtensionGenerator)
-  endif()
-
-  list(APPEND ADDITIONAL_MAKE_CLEAN_FILES "${GLEXTGEN_OUTPUT_DIR}")
-endif()
+add_subdirectory(${SOURCE_DIR})
 
 # -----------------------------------------------------------------------------
