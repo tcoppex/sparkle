@@ -243,7 +243,7 @@ void GPUParticle::update(const float dt, glm::mat4x4 const& view) {
     pbuffer_->unbind_atomics();
 
     /* Sort particles for alpha-blending. */
-    if (enable_sorting_ and simulated_) {
+    if (enable_sorting_ && simulated_) {
       _sorting(view);
     }
   }
