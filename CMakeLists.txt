@@ -82,18 +82,19 @@ if(   (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 
   #list(APPEND LINK_FLAGS -Wl,--no-undefined)
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-  list(APPEND CXX_FLAGS
-    /W4 /W44640
+  list(APPEND CXX_FLAGS    
+    /W4
     /MP /EHsc-
   )
   list(APPEND CXX_FLAGS_DEBUG   /Zi)
-  list(APPEND CXX_FLAGS_RELEASE /Ox /INCREMENTAL:NO /DEBUG:NONE /DNDEBUG)
+  list(APPEND CXX_FLAGS_RELEASE /W0 /Ox /INCREMENTAL:NO /DEBUG:NONE /DNDEBUG)
 
-  list(APPEND AerDefinitions 
+  list(APPEND Definitions 
     NOMINMAX
     WIN32
     _WINDOWS
     _CRT_SECURE_NO_WARNINGS
+    _USE_MATH_DEFINES
   )
 else()
   message(WARNING "The compiler ${CMAKE_CXX_COMPILER_ID} has not been tested yet.")
@@ -183,6 +184,8 @@ list(APPEND IncludeDirs
   ${OPENGL_INCLUDE_DIRS}
   ${GLEW_INCLUDE_DIRS}
   ${GLM_INCLUDE_DIR}
+
+  ${THIRDPARTY}/inc
 )
 
 # Libraries

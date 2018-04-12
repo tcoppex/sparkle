@@ -63,7 +63,7 @@ function(set_global_output_directory OUTPUT_DIR)
 endfunction()
 
 # Force output directory destination, especially for MSVC (@so7747857).
-function(set_target_output_directory target ouput_dir)
+function(set_target_output_directory target output_dir)
   foreach(type RUNTIME LIBRARY ARCHIVE)
     set_target_properties(${target} PROPERTIES
       ${type}_OUTPUT_DIRECTORY         ${output_dir}

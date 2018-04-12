@@ -64,3 +64,5 @@ glTexStorage2D
 glGenerateMipmap
 glUniformMatrix3fv
 glUniform3f
+glBlendEquation
+glTexSubImage3D

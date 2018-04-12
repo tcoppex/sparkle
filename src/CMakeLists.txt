@@ -45,3 +45,5 @@ target_compile_options(${TARGET_NAME} PRIVATE
 target_include_directories(${TARGET_NAME} PRIVATE ${IncludeDirs})
 target_link_libraries(${TARGET_NAME} ${Libs})
 target_compile_definitions(${TARGET_NAME} PRIVATE ${Definitions})
+
+set_target_output_directory(${TARGET_NAME} ${OUTPUT_DIR})
