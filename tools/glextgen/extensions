@@ -63,3 +63,4 @@ glGetUniformBlockIndex
 glTexStorage2D
 glGenerateMipmap
 glUniformMatrix3fv
+glUniform3f
