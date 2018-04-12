@@ -1,6 +1,6 @@
 # -----------------------------------------------------------------------------
 # CMake configuration file
-#
+# 
 # The variables GLM_INCLUDE_DIR and GLFW_LOCATION might need to be set for
 # compilation to succeed.
 # -----------------------------------------------------------------------------
@@ -19,7 +19,7 @@ project(sparkle)
 
 # Force the use of GLEW - if found - to handle OpenGL extensions,
 # otherwise a python script will generate functions loaders.
-set(USE_GLEW ON)
+set(USE_GLEW OFF)
 
 # -----------------------------------------------------------------------------
 
