@@ -178,18 +178,18 @@ void Scene::setup_wirecube_geometry() {
   float const c = 0.5f * world_size;
 
   std::array<float, 24> const vertices = {
-    +c, +c, +c,   +c, -c, +c,   +c, -c, -c,   +c, +c, -c,
-    -c, +c, +c,   -c, -c, +c,   -c, -c, -c,   -c, +c, -c
+    {+c, +c, +c,   +c, -c, +c,   +c, -c, -c,   +c, +c, -c,
+    -c, +c, +c,   -c, -c, +c,   -c, -c, -c,   -c, +c, -c}
   };
 
   std::array<unsigned char, 24> const indices = {
-    0, 1, 1, 2, 2, 3, 3, 0,
+    {0, 1, 1, 2, 2, 3, 3, 0,
     4, 5, 5, 6, 6, 7, 7, 4,
-    0, 4, 1, 5, 2, 6, 3, 7
+    0, 4, 1, 5, 2, 6, 3, 7}
   };
 
   // Vertices storage.
-  size_t bytesize(0u);
+  GLsizeiptr bytesize(0);
   glGenBuffers(1u, &geo_.wirecube.vbo);
   glBindBuffer(GL_ARRAY_BUFFER, geo_.wirecube.vbo);
     bytesize = vertices.size() * sizeof(vertices[0u]);

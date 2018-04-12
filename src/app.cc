@@ -14,7 +14,7 @@
 bool App::init(char const* title) {
   /* System parameters */
   std::setbuf(stderr, nullptr);
-  std::srand(std::time(0));
+  std::srand(static_cast<uint32_t>(std::time(nullptr)));
 
   /* Initialize Window Management API */
   if (!glfwInit()) {
@@ -134,7 +134,7 @@ void App::_update_time() {
   std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(tick - time_);
   time_ = tick;
 
-  deltatime_ = (GetEventData().bSpacePressed) ? 0.0f : time_span.count();
+  deltatime_ = (GetEventData().bSpacePressed) ? 0.0f : static_cast<float>(time_span.count());
   deltatime_ *= 1.0f;
 }
 

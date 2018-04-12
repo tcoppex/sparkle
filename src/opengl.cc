@@ -11,8 +11,7 @@ static
 int checkExtensions(char const** extensions) {
   unsigned int i = 0u;
   int valid = 1;
-
-  for (i=0u; extensions[i] != NULL; ++i) {
+  for (i = 0u; extensions[i] != nullptr; ++i) {
     if (!glfwExtensionSupported(extensions[i])) {
       fprintf(stderr, "warning : Extension \"%s\" is not supported.\n", extensions[i]);
       valid = 0;
@@ -26,11 +25,9 @@ int checkExtensions(char const** extensions) {
 static
 GLFWglproc getAddress(char const* name) {
   GLFWglproc ptr = glfwGetProcAddress(name);
-
-  if (ptr == 0) {
+  if (nullptr == ptr) {
     fprintf(stderr, "error: Extension function %s not found.\n", name);
   }
-
   return ptr;
 }
 
@@ -43,7 +40,7 @@ GLFWglproc getAddress(char const* name) {
 
 static
 int ReadFile(const char* filename, const unsigned int maxsize, char out[]) {
-  FILE* fd = 0;
+  FILE* fd = nullptr;
   size_t nelems = 0;
   size_t nreads = 0;
 
@@ -51,16 +48,14 @@ int ReadFile(const char* filename, const unsigned int maxsize, char out[]) {
     fprintf(stderr, "warning: \"%s\" not found.\n", filename);
     return 0;
   }
-
   memset(out, 0, maxsize);
 
   fseek(fd, 0, SEEK_END);
-  nelems = ftell(fd);
+  nelems = static_cast<size_t>(ftell(fd));
   nelems = (nelems > maxsize) ? maxsize : nelems;
   fseek(fd, 0, SEEK_SET);
 
   nreads = fread(out, sizeof(char), nelems, fd);
-
   fclose(fd);
 
   return nreads == nelems;
@@ -99,7 +94,7 @@ void ReadShaderFile(char const* filename, unsigned int const maxsize, char out[]
   char *last = nullptr;
   char include_fn[64u] = {0};
   char include_path[256u] = {0};
-  int include_len = 0u;
+  size_t include_len = 0u;
 
   /* Prevent long recursive includes */
   if (*level <= 0) {
@@ -113,7 +108,7 @@ void ReadShaderFile(char const* filename, unsigned int const maxsize, char out[]
   /* Check for include file an retrieve its name */
   last = out;
   //unsigned int newline_count = 0u;
-  while (NULL != (first = strstr(last, substr))) {
+  while (nullptr != (first = strstr(last, substr))) {
     //newline_count = CountChar(last, first-last, '\n');
 
     /* pass commented include directives */
@@ -128,7 +123,7 @@ void ReadShaderFile(char const* filename, unsigned int const maxsize, char out[]
     if (!last) return;
 
     /* Copy the include file name */
-    include_len = (size_t)(last-first);
+    include_len = static_cast<size_t>(last-first);
     strncpy(include_fn, first, include_len);
     include_fn[include_len] = '\0';
 
@@ -138,7 +133,7 @@ void ReadShaderFile(char const* filename, unsigned int const maxsize, char out[]
       if (*c == '\n') ++newline_count;
     }
 
-    newline_count += CountChar(last, last-first, '\n');
+    newline_count += CountChar(last, static_cast<unsigned int>(last-first), '\n');
 
     /* Set include global path */
     sprintf(include_path, "%s/%s", SHADERS_DIR, include_fn);
@@ -149,7 +144,7 @@ void ReadShaderFile(char const* filename, unsigned int const maxsize, char out[]
     }
 
     /* Create memory to hold the include file */
-    char *include_file = (char*)calloc(maxsize, sizeof(char));
+    char *include_file = reinterpret_cast<char*>(calloc(maxsize, sizeof(char)));
 
     /* Retrieve the include file */
     ReadShaderFile(include_path, maxsize, include_file, level);
@@ -178,7 +173,7 @@ void InitGL() {
     "GL_ARB_separate_shader_objects",
     "GL_ARB_shader_image_load_store",
     "GL_ARB_shader_storage_buffer_object",
-    NULL
+    nullptr
   };
 
   /* Check if specific extensions exists */
@@ -214,7 +209,7 @@ GLuint CreateRenderProgram(char const* vsfile, char const* gsfile, char const* f
   /* Vertex Shader */
   vshader = glCreateShader(GL_VERTEX_SHADER);
   ReadShaderFile(vsfile, MAX_SHADER_BUFFERSIZE, src_buffer);
-  glShaderSource(vshader, 1, &src_buffer, NULL);
+  glShaderSource(vshader, 1, &src_buffer, nullptr);
   glCompileShader(vshader);
   CheckShaderStatus(vshader, vsfile);
 
@@ -222,7 +217,7 @@ GLuint CreateRenderProgram(char const* vsfile, char const* gsfile, char const* f
   if (gsfile) {
     gshader = glCreateShader(GL_GEOMETRY_SHADER);
     ReadShaderFile(gsfile, MAX_SHADER_BUFFERSIZE, src_buffer);
-    glShaderSource(gshader, 1, &src_buffer, NULL);
+    glShaderSource(gshader, 1, &src_buffer, nullptr);
     glCompileShader(gshader);
     CheckShaderStatus(gshader, gsfile);
   }
@@ -230,7 +225,7 @@ GLuint CreateRenderProgram(char const* vsfile, char const* gsfile, char const* f
   /* Fragment Shader */
   fshader = glCreateShader(GL_FRAGMENT_SHADER);
   ReadShaderFile(fsfile, MAX_SHADER_BUFFERSIZE, src_buffer);
-  glShaderSource(fshader, 1, &src_buffer, NULL);
+  glShaderSource(fshader, 1, &src_buffer, nullptr);
   glCompileShader(fshader);
   CheckShaderStatus(fshader, fsfile);
 
@@ -269,7 +264,7 @@ void CheckShaderStatus(GLuint shader, char const* name) {
   glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
   if (status != GL_TRUE) {
     char buffer[1024];
-    glGetShaderInfoLog(shader, 1024, 0, buffer);
+    glGetShaderInfoLog(shader, 1024, nullptr, buffer);
     fprintf(stderr, "%s :\n%s\n", name, buffer);
   }
 }
@@ -280,7 +275,7 @@ bool CheckProgramStatus(GLuint program, char const* name) {
   glGetProgramiv(program, GL_LINK_STATUS, &status);
   if (status != GL_TRUE) {
     char buffer[1024];
-    glGetProgramInfoLog(program, 1024, 0, buffer);
+    glGetProgramInfoLog(program, 1024, nullptr, buffer);
     fprintf(stderr, "%s\n", buffer);
   }
 
@@ -321,13 +316,10 @@ const char* GetErrorString(GLenum err) {
     case GL_OUT_OF_MEMORY:
       return STRINGIFY(GL_OUT_OF_MEMORY);
       
-      
     default:
       return "GetErrorString : Unknown constant";
   }
 #undef STRINGIFY
-    
-  return "";
 }
 
 void CheckGLError(const char* file, const int line, const char* errMsg, bool bExitOnFail) {
@@ -348,7 +340,7 @@ extern
 bool IsBufferBound(GLenum pname, GLuint buffer) {
   GLint data;
   glGetIntegerv(pname, &data);
-  return ((GLuint)data) == buffer;
+  return static_cast<GLuint>(data) == buffer;
 }
 
 extern

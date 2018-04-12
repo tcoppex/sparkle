@@ -59,8 +59,8 @@ class ArcBallCamera {
     if (btnRotate) {
       pitch_ += dv_x * kMouseRAcceleration;
       yaw_   += dv_y * kMouseRAcceleration;
-      pitch_ = fmod(pitch_, kAngleModulo);
-      yaw_   = fmod(yaw_, kAngleModulo);
+      pitch_ = fmodf(pitch_, kAngleModulo);
+      yaw_   = fmodf(yaw_, kAngleModulo);
     }
 
     if (btnTranslate) {

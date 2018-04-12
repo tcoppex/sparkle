@@ -29,10 +29,10 @@ void RandomBuffer::generate_values() {
 
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, gl_random_buffer_id_);
 
-  float *buffer = (float*)glMapBufferRange(
+  float *buffer = reinterpret_cast<float*>(glMapBufferRange(
     GL_SHADER_STORAGE_BUFFER, 0u, num_elements_ * sizeof(float),
     GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT | GL_MAP_UNSYNCHRONIZED_BIT
-  );
+  ));
 
   for (unsigned int i=0u; i<num_elements_; ++i) {
     buffer[i] = distrib(mt_);
