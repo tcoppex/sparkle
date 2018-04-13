@@ -30,8 +30,8 @@ The following dependencies are pulled in as submodules.
 
 To retrieve them, type the following command line in the project directory :
 ```
-$ git submodule init
-$ git submodule update
+git submodule init
+git submodule update
 ```
 
 ### Build
@@ -39,26 +39,26 @@ $ git submodule update
 We will first create a build directory then generate the CMake cache depending on your system.
 
 ```
-$ mkdir BUILDs && cd BUILDs
+mkdir BUILDs && cd BUILDs
 ```
 
-On **Unix**, using Makefile:
+On **Unix**, using Makefile (*replace `$NUM_CPU` by the number of core you want to use*) :
 ```
-$ cmake .. -G Makefile -DCMAKE_BUILD_TYPE=Release
-$ make -j4
+cmake .. -G Makefile -DCMAKE_BUILD_TYPE=Release
+make -j$NUM_CPU
 ```
 
 On **Windows**, using MSVC 15 for x64:
 ```
-$ cmake .. -G "Visual Studio 15 2017 Win64"
-$ cmake --build . --target ALL_BUILD --config Release
+cmake .. -G "Visual Studio 15 2017 Win64"
+cmake --build . --target ALL_BUILD --config Release
 ```
 
 *Notes:*
 
  1. *Using CMake, the build configuration type (ie. Debug, Release) is set at Build Time with MSVC and at Cache Generation Time with Makefile.*
 
- 2. *OpenGL extensions are generated automatically by a custom [Python](https://www.python.org/downloads/) script.  Optionnally [GLEW](http://glew.sourceforge.net/) can be used instead by specifying the option ` -DUSE_GLEW=ON` to CMake.*
+ 2. *OpenGL extensions are generated automatically by a custom [Python](https://www.python.org/downloads/) script.  Alternatively [GLEW](http://glew.sourceforge.net/) can be used by specifying the option `-DUSE_GLEW=ON` to CMake.*
 
 ### Run
 
