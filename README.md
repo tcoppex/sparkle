@@ -66,7 +66,7 @@ cmake --build . --target ALL_BUILD --config Release
 
 The binary can be found in the project `./bin/` directory:
 ```
-$ ../bin/sparkle_demo
+../bin/sparkle_demo
 ```
 
 [//]: # (## Directory structure)
