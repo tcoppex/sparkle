@@ -7,7 +7,7 @@
 
 /* -------------------------------------------------------------------------- */
 
-int main(int argc, char *argv[]) {
+int main(int, char *[]) {
   App app;
 
   if (!app.init(WINDOW_TITLE)) {
