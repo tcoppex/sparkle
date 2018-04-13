@@ -44,6 +44,7 @@ set(SOURCE_DIR            ${CMAKE_SOURCE_DIR}/src)
 set(SHADERS_DIR           ${SOURCE_DIR}/shaders)
 set(OUTPUT_DIR            ${CMAKE_SOURCE_DIR}/bin)
 set(THIRDPARTY            ${CMAKE_SOURCE_DIR}/thirdparty)
+set(THIRDPARTY_INCLUDE    ${THIRDPARTY}/include)
 set(TOOLS                 ${CMAKE_SOURCE_DIR}/tools)
 
 # -----------------------------------------------------------------------------
@@ -180,12 +181,11 @@ list(APPEND Definitions
 list(APPEND IncludeDirs
   ${SOURCE_DIR}
   ${SHADERS_DIR}
+  ${THIRDPARTY_INCLUDE}
   ${GLFW_INCLUDE_DIR}
   ${OPENGL_INCLUDE_DIRS}
   ${GLEW_INCLUDE_DIRS}
   ${GLM_INCLUDE_DIR}
-
-  ${THIRDPARTY}/inc
 )
 
 # Libraries
