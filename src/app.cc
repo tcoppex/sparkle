@@ -4,8 +4,8 @@
 #include <cstdio>
 #include <ctime>
 
-#include <glm/gtc/matrix_transform.hpp>
-#include <GLFW/glfw3.h>
+#include "glm/gtc/matrix_transform.hpp"
+#include "GLFW/glfw3.h"
 
 #include "events.h"
 
@@ -29,7 +29,7 @@ bool App::init(char const* title) {
   glfwWindowHint(GLFW_RESIZABLE, 0);
 
   /* Compute window resolution from the main monitor's */
-  float const scale = 2.0f / 3.0f;
+  float const scale = 4.0f / 5.0f;
   GLFWvidmode const* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
   int const w  = static_cast<int>(scale * mode->width);
   int const h = static_cast<int>(scale * mode->height);
@@ -44,12 +44,16 @@ bool App::init(char const* title) {
 
   /* Make the window's context current */
   glfwMakeContextCurrent(window_);
-
-  /* Init the event manager */
-  InitEvents(window_);
+  glfwSwapInterval(1);
 
   /* Initialize OpenGL extensions */
   InitGL();
+
+  /* User Interface init */
+  ui_.init(window_);
+
+  /* Init the event manager */
+  InitEvents(window_);
 
   /* Camera setup. */
   camera_.dolly(295.0f);
@@ -70,10 +74,12 @@ bool App::init(char const* title) {
 }
 
 void App::deinit() {
-  glfwTerminate();
-
-  window_ = nullptr;
   scene_.deinit();
+
+  ui_.deinit();
+
+  glfwTerminate();
+  window_ = nullptr;
 }
 
 void App::run() {
@@ -82,8 +88,14 @@ void App::run() {
     /* Manage events */
     HandleEvents();
 
+    /* Update UI events */
+    ui_.update();
+
     /* Update and render one frame */
     _frame();
+
+    /* Render UI */
+    ui_.render();
 
     /* Swap front & back buffers */
     glfwSwapBuffers(window_);

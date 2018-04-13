@@ -43,7 +43,9 @@ void CheckShaderStatus(GLuint shader, char const* name);
 bool CheckProgramStatus(GLuint program, char const* name);
 void CheckGLError(char const* file, int const line, char const* errMsg, bool bExitOnFail);
 bool IsBufferBound(GLenum pname, GLuint buffer);
-GLint GetUniformLocation(GLuint const pgm, char const *name);
+GLuint GetAttribLocation(GLuint const pgm, char const *name);
+GLuint GetUniformLocation(GLuint const pgm, char const *name);
+GLuint GetUInteger(GLenum const pname);
 
 // ----------------------------------------------------------------------------
 

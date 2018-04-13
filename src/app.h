@@ -7,6 +7,7 @@
 #include "glm/mat4x4.hpp"
 #include "arcball_camera.h"
 #include "scene.h"
+#include "ui.h"
 
 struct GLFWwindow;
 
@@ -32,6 +33,7 @@ class App {
   std::chrono::steady_clock::time_point time_;
   GLFWwindow *window_;
 
+  UI ui_;
   ArcBallCamera camera_;
 
   struct {

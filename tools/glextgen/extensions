@@ -4,10 +4,13 @@ glBindBuffer
 glBindBufferBase
 glBindBufferRange
 glBindBuffersBase
+glBindSampler
 glBindVertexArray
 glBindVertexBuffer
 glBlendEquation
 glBlendEquationSeparate
+glBlendFuncSeparate
+glBufferData
 glBufferStorage
 glBufferSubData
 glClearNamedBufferSubData
@@ -31,6 +34,7 @@ glEndQuery
 glGenBuffers
 glGenerateMipmap
 glGenVertexArrays
+glGetAttribLocation
 glGetProgramInfoLog
 glGetProgramiv
 glGetProgramResourceIndex
@@ -66,3 +70,4 @@ glValidateProgram
 glVertexAttribBinding
 glVertexAttribFormat
 glVertexAttribIFormat
+glVertexAttribPointer

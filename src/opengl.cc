@@ -249,7 +249,6 @@ GLuint CreateComputeProgram(char const* program_name, char *src_buffer) {
   GLuint pgm = 0u;
 
   ReadShaderFile(program_name, MAX_SHADER_BUFFERSIZE, src_buffer);
-
   pgm = glCreateShaderProgramv(GL_COMPUTE_SHADER, 1, &src_buffer);
   if (!CheckProgramStatus(pgm, program_name)) {
     exit(EXIT_FAILURE);
@@ -344,14 +343,32 @@ bool IsBufferBound(GLenum pname, GLuint buffer) {
 }
 
 extern
-GLint GetUniformLocation(GLuint const pgm, char const *name) {
+GLuint GetAttribLocation(GLuint const pgm, char const *name) {
+  GLint loc = glGetAttribLocation(pgm, name);
+#ifndef NDEBUG
+  if (loc == -1) {
+    fprintf(stderr, "Warning : attrib %s was not found.\n", name);
+  }
+#endif
+  return static_cast<GLuint>(loc);
+}
+
+extern
+GLuint GetUniformLocation(GLuint const pgm, char const *name) {
   GLint loc = glGetUniformLocation(pgm, name);
 #ifndef NDEBUG
   if (loc == -1) {
     fprintf(stderr, "Warning : uniform %s was not found.\n", name);
   }
 #endif
-  return loc;
+  return static_cast<GLuint>(loc);
+}
+
+extern
+GLuint GetUInteger(GLenum const pname) {
+  GLint v;
+  glGetIntegerv(pname, &v);
+  return static_cast<GLuint>(v);
 }
 
 // ----------------------------------------------------------------------------

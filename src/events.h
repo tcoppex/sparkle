@@ -7,7 +7,7 @@ struct GLFWwindow;
 
 // ----------------------------------------------------------------------------
 
-typedef struct {
+struct TEventData {
   float wheelDelta;
   float mouseX;
   float mouseY;
@@ -15,7 +15,7 @@ typedef struct {
   bool bRotatePressed;
   bool bTranslatePressed;
   bool bSpacePressed;
-} TEventData;
+};
 
 // ----------------------------------------------------------------------------
 

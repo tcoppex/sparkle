@@ -6,7 +6,7 @@ set(Sources
   main.cc
   opengl.cc
   scene.cc
-  scene.h
+  ui.cc
 
   api/append_consume_buffer.cc
   api/gpu_particle.cc
@@ -19,6 +19,8 @@ set(Headers
   arcball_camera.h
   events.h
   opengl.h
+  scene.h
+  ui.h
 
   api/append_consume_buffer.h
   api/gpu_particle.h

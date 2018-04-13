@@ -1,5 +1,6 @@
 #include "events.h"
 #include "GLFW/glfw3.h"
+#include "imgui.h"
 
 /* -------------------------------------------------------------------------- */
 
@@ -53,7 +54,11 @@ TEventData const GetEventData() {
 
 
 static
-void keyboard_cb(GLFWwindow *window, int key, int scancode, int action, int mods) {
+void keyboard_cb(GLFWwindow *window, int key, int, int action, int) {
+  if (ImGui::GetIO().WantCaptureKeyboard) {
+    return;
+  }
+
   if (    (key == GLFW_KEY_ESCAPE)
        && (action == GLFW_PRESS)) {
       glfwSetWindowShouldClose(window, 1);
@@ -69,7 +74,10 @@ void keyboard_cb(GLFWwindow *window, int key, int scancode, int action, int mods
 }
 
 static
-void mouse_button_cb(GLFWwindow* window, int button, int action, int mods) {
+void mouse_button_cb(GLFWwindow*, int button, int action, int) {
+  if (ImGui::GetIO().WantCaptureMouse) {
+    return;
+  }
   bool &bRotatePressed = s_Global.bRotatePressed;
   bRotatePressed = bRotatePressed || (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS);
   bRotatePressed = bRotatePressed && (button == GLFW_MOUSE_BUTTON_RIGHT && action != GLFW_RELEASE);
@@ -80,7 +88,10 @@ void mouse_button_cb(GLFWwindow* window, int button, int action, int mods) {
 }
 
 static
-void mouse_move_cb(GLFWwindow* window, double xpos, double ypos) {
+void mouse_move_cb(GLFWwindow*, double xpos, double ypos) {
+  if (ImGui::GetIO().WantCaptureMouse) {
+    return;
+  }
   s_Global.mouseX = static_cast<float>(xpos);
   s_Global.mouseY = static_cast<float>(ypos);
   s_Global.bMouseMove = true;
@@ -88,7 +99,10 @@ void mouse_move_cb(GLFWwindow* window, double xpos, double ypos) {
 
 
 static
-void scroll_cb(GLFWwindow* window, double x, double y) {
+void scroll_cb(GLFWwindow*, double x, double y) {
+  if (ImGui::GetIO().WantCaptureMouse) {
+    return;
+  }
   s_Global.wheelDelta = 0.5f * static_cast<float>(y);
 }
 
