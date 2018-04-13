@@ -176,7 +176,6 @@ set(GLM_INCLUDE_DIR ${THIRDPARTY}/glm)
 set(IMGUI_INCLUDE_DIR ${THIRDPARTY}/imgui)
 list(APPEND IMGUI_SOURCES 
   ${IMGUI_INCLUDE_DIR}/imgui.cpp
-  ${IMGUI_INCLUDE_DIR}/imgui_demo.cpp
   ${IMGUI_INCLUDE_DIR}/imgui_draw.cpp
 )
 
