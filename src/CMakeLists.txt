@@ -35,6 +35,7 @@ add_executable(${TARGET_NAME}
   ${Sources}
   ${Headers}
   ${Miscs}
+  ${IMGUI_SOURCES}
 )
 
 target_compile_options(${TARGET_NAME} PRIVATE

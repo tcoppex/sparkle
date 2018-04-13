@@ -69,7 +69,7 @@ endif()
 if(   (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
    OR (CMAKE_CXX_COMPILER_ID STREQUAL "Clang"))
   list(APPEND CXX_FLAGS 
-    -Wall -Wextra -Wpedantic
+    -Wall -Wextra -Wpedantic -Wformat
     -Wnon-virtual-dtor -Woverloaded-virtual
     -Wuseless-cast -Wcast-align
     #-Wold-style-cast
@@ -138,7 +138,7 @@ else()
       ${GLEXTGEN_OUTPUT_DIR}/_extensions.h
       ${GLEXTGEN_OUTPUT_DIR}/_extensions.inl
     )
-    add_custom_target(GLEXTGEN_target
+    add_custom_target(OpenGLExtensionGenerator
       ALL
       DEPENDS ${GLEXTGEN_OUTPUTS}
     )
@@ -174,7 +174,11 @@ set(GLM_INCLUDE_DIR ${THIRDPARTY}/glm)
 
 # imgui, as user interface.
 set(IMGUI_INCLUDE_DIR ${THIRDPARTY}/imgui)
-set(IMGUI_SOURCES     ${IMGUI_INCLUDE_DIR}/imgui.cpp)
+list(APPEND IMGUI_SOURCES 
+  ${IMGUI_INCLUDE_DIR}/imgui.cpp
+  ${IMGUI_INCLUDE_DIR}/imgui_demo.cpp
+  ${IMGUI_INCLUDE_DIR}/imgui_draw.cpp
+)
 
 # -----------------------------------------------------------------------------
 # Compilation settings.
