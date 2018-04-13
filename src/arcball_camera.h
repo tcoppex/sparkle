@@ -68,10 +68,7 @@ class ArcBallCamera {
       ty_ -= dv_y * acc;
     }
 
-    if (btnTranslate || btnRotate) {
-      last_mouse_x_ = mouseX;
-      last_mouse_y_ = mouseY;
-    }
+    eventMousePressed(btnTranslate, btnRotate, mouseX, mouseY);
   }
 
   inline
