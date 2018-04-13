@@ -117,7 +117,7 @@ unsigned int AppendConsumeBuffer::get_num_alive_particles_from_device() {
 
   glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, gl_atomic_buffer_ids_[1u]);
     /// @warning most costly call.
-    GLuint *ptr = (GLuint*)glMapBuffer(GL_ATOMIC_COUNTER_BUFFER, GL_READ_ONLY);
+    GLuint *ptr = reinterpret_cast<GLuint*>(glMapBuffer(GL_ATOMIC_COUNTER_BUFFER, GL_READ_ONLY));
     num_alived_particles = *ptr;
     glUnmapBuffer(GL_ATOMIC_COUNTER_BUFFER);
   glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, 0u);

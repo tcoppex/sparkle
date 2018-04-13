@@ -11,7 +11,7 @@
 /* -------------------------------------------------------------------------- */
 
 void VectorField::initialize(unsigned int const width, unsigned int const height, unsigned int const depth) {
-  dimensions_ = glm::vec3(width, height, depth);
+  dimensions_ = glm::uvec3(width, height, depth);
 
   /// @bug
   /// Velocity fields are 3d textures where only particles in the texture volume
@@ -60,7 +60,7 @@ void VectorField::generate_values(char const* filename) {
   FILE *fd = fopen(filename, "rb");
 
   if (fd) {
-    size_t nreads = fread(&data[0u], sizeof(float), data.size(), fd);
+    size_t nreads = fread(&data[0u], sizeof(data[0u]), data.size(), fd);
     if (nreads != data.size()) {
       fprintf(stderr, "Velocity Field: incorrect velocity file \"%s\", recalculating.\n", filename);
       bForceCalculate = true;
@@ -96,9 +96,12 @@ void VectorField::generate_values(char const* filename) {
   fclose(fd);
 
   // Transfer pixels to device.
+  const GLsizei iW = static_cast<GLsizei>(W); //
+  const GLsizei iH = static_cast<GLsizei>(H); //
+  const GLsizei iD = static_cast<GLsizei>(D); //
   glBindTexture(GL_TEXTURE_3D, gl_texture_id_);
-  glTexStorage3D(GL_TEXTURE_3D, 1, GL_RGB32F, W, H, D);
-  glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, W, H, D, GL_RGB, GL_FLOAT, data.data());
+  glTexStorage3D(GL_TEXTURE_3D, 1, GL_RGB32F, iW, iH, iD);
+  glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, iW, iH, iD, GL_RGB, GL_FLOAT, data.data());
   glBindTexture(GL_TEXTURE_3D, 0u);
 
   CHECKGLERROR();

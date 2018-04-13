@@ -120,16 +120,18 @@ void Scene::setup_grid_geometry() {
   // size taken in world space
   float const world_size = 1.0f;
 
-  geo_.grid.resolution = 32u; //static_cast<unsigned int>(gpu_particle_->simulation_box_size()) / 2u;
-  geo_.grid.nvertices  = 4u * (geo_.grid.resolution + 1u);
-
-  unsigned int const &res          = geo_.grid.resolution;
-  unsigned int const &num_vertices = geo_.grid.nvertices;
+  unsigned int const &res          = 32u; //static_cast<unsigned int>(gpu_particle_->simulation_box_size()) / 2u;
+  unsigned int const &num_vertices = 4u * (res + 1u);
   unsigned int const num_component = 2u;
   unsigned int const buffersize    = num_vertices * num_component;
   std::vector<float> vertices(buffersize);
 
-  float const cell_padding = world_size / geo_.grid.resolution;
+
+  geo_.grid.resolution = res;
+  geo_.grid.nvertices  = static_cast<GLsizei>(num_vertices); //
+
+
+  float const cell_padding = world_size / res;
   float const offset = cell_padding * (res/2.0f);
 
   for (unsigned int i=0u; i<=res; ++i) {
@@ -151,7 +153,7 @@ void Scene::setup_grid_geometry() {
   // Allocate Storage.
   glGenBuffers(1u, &geo_.grid.vbo);
   glBindBuffer(GL_ARRAY_BUFFER, geo_.grid.vbo);
-    size_t const bytesize = vertices.size() * sizeof(vertices[0u]);
+    GLsizeiptr const bytesize = static_cast<GLsizeiptr>(vertices.size() * sizeof(vertices[0u]));
     glBufferStorage(GL_ARRAY_BUFFER, bytesize, vertices.data(), 0);
   glBindBuffer(GL_ARRAY_BUFFER, 0u);
 
@@ -227,11 +229,14 @@ void Scene::setup_wirecube_geometry() {
 }
 
 void Scene::setup_sphere_geometry() {
-  float const world_size = 2.0f;            // xx
+  float const world_size = 2.0f; //
   float const radius = 0.5f * world_size;
 
-  geo_.sphere.resolution = 32u;
-  geo_.sphere.nvertices = 2u * geo_.sphere.resolution * (geo_.sphere.resolution + 2u);
+  unsigned int const res = 32u;
+  unsigned int const num_vertices = 2u * res * (res + 2u);
+
+  geo_.sphere.resolution = res;
+  geo_.sphere.nvertices = static_cast<GLsizei>(num_vertices); //
 
   float theta2, phi;    // next theta angle, phi angle
   float ct, st;         // cos(theta), sin(theta)
@@ -247,7 +252,7 @@ void Scene::setup_sphere_geometry() {
 
   // Vertices data.
   unsigned int const num_component = 3u;
-  std::vector<float> vertices(num_component * geo_.sphere.nvertices);
+  std::vector<float> vertices(num_component * num_vertices);
 
   /* Create a sphere from bottom to top (like a spiral) as a tristrip */
   unsigned int id = 0u;
@@ -284,7 +289,7 @@ void Scene::setup_sphere_geometry() {
   // Allocate Storage.
   glGenBuffers(1u, &geo_.sphere.vbo);
   glBindBuffer(GL_ARRAY_BUFFER, geo_.sphere.vbo);
-    size_t const bytesize = vertices.size() * sizeof(vertices[0u]);
+    GLsizeiptr const bytesize = static_cast<GLsizeiptr>(vertices.size() * sizeof(vertices[0u]));
     glBufferStorage(GL_ARRAY_BUFFER, bytesize, vertices.data(), 0);
   glBindBuffer(GL_ARRAY_BUFFER, 0u);
 
@@ -305,19 +310,19 @@ void Scene::setup_sphere_geometry() {
 }
 
 void Scene::setup_texture() {
-  unsigned int const w = sprite_width;
-  unsigned int const h = sprite_height;
+  unsigned int const res = sprite_width*sprite_height;
+  char *pixels = new char[3u*res];
+  char *texdata = new char[res];
 
-  char *pixels = new char[3u*w*h];
-  char *texdata = new char[w*h];
-
-  for (unsigned int i=0u; i < w*h; ++i) {
+  for (unsigned int i=0u; i < res; ++i) {
     char *px = pixels + 3*i;
     HEADER_PIXEL(sprite_data, px);
     texdata[i] = *px;
   }
   delete [] pixels;
 
+  GLsizei const w = static_cast<GLsizei>(sprite_width);
+  GLsizei const h = static_cast<GLsizei>(sprite_height);
   glGenTextures(1u, &gl_sprite_tex_);
   glBindTexture(GL_TEXTURE_2D, gl_sprite_tex_);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);

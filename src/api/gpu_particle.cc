@@ -156,9 +156,9 @@ void GPUParticle::init() {
   glBindBuffer(GL_DISPATCH_INDIRECT_BUFFER, gl_indirect_buffer_id_);
   TIndirectValues const default_indirect[] = {
     // Dispatch values
-    1u, 1u, 1u,
+    {1u, 1u, 1u,
     // Draw values
-    0, 1u, 0u, 0u
+    0, 1u, 0u, 0u}
   };
   glBufferStorage(GL_DISPATCH_INDIRECT_BUFFER, sizeof default_indirect, default_indirect, 0);
   glBindBuffer(GL_DISPATCH_INDIRECT_BUFFER, 0u);
@@ -265,10 +265,10 @@ void GPUParticle::render(glm::mat4x4 const& view, glm::mat4x4 const& viewProj) {
 #else
   glUseProgram(pgm_.render_point_sprite);
   {
-    glUniformMatrix4fv(ulocation_.render_point_sprite.mvp,  1, GL_FALSE, (GLfloat *const)viewProj);
+    glUniformMatrix4fv(ulocation_.render_point_sprite.mvp,  1, GL_FALSE, glm::value_ptr(viewProj));
 #endif
     glBindVertexArray(vao_);
-      void const *offset = (void *const)offsetof(TIndirectValues, TIndirectValues::draw_count);
+      void const *offset = reinterpret_cast<void const*>(offsetof(TIndirectValues, draw_count));
       glBindBuffer(GL_DRAW_INDIRECT_BUFFER, gl_indirect_buffer_id_);
       glDrawArraysIndirect(GL_POINTS, offset);
       glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0u);
