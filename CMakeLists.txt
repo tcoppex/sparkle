@@ -153,7 +153,7 @@ endif(USE_GLEW)
 # Thirdparties Submodule dependencies.
 # -----------------------------------------------------------------------------
 
-# GLFW as window manager.
+# GLFW, as window manager.
 set(GLFW_ROOT ${THIRDPARTY}/glfw)
 set(GLFW_LIBRARY glfw)
 set(GLFW_INCLUDE_DIR ${GLFW_ROOT}/include)
@@ -163,10 +163,18 @@ if(NOT EXISTS ${GLFW_INCLUDE_DIR})
                       "git submodule update"
   )
 endif()
+set(BUILD_SHARED_LIBS   TRUE  CACHE BOOL "Build GLFW as shared library.")
+set(GLFW_BUILD_EXAMPLES FALSE CACHE BOOL "Do not build GLFW examples.")
+set(GLFW_BUILD_TESTS    FALSE CACHE BOOL "Do not run GLFW tests.")
+set(GLFW_BUILD_DOCS     FALSE CACHE BOOL "Do not build GLFW documentation.")
 add_subdirectory(${GLFW_ROOT} glfw EXCLUDE_FROM_ALL)
 
-# GLM as math library.
+# GLM, as math library.
 set(GLM_INCLUDE_DIR ${THIRDPARTY}/glm)
+
+# imgui, as user interface.
+set(IMGUI_INCLUDE_DIR ${THIRDPARTY}/imgui)
+set(IMGUI_SOURCES     ${IMGUI_INCLUDE_DIR}/imgui.cpp)
 
 # -----------------------------------------------------------------------------
 # Compilation settings.
@@ -186,6 +194,7 @@ list(APPEND IncludeDirs
   ${OPENGL_INCLUDE_DIRS}
   ${GLEW_INCLUDE_DIRS}
   ${GLM_INCLUDE_DIR}
+  ${IMGUI_INCLUDE_DIR}
 )
 
 # Libraries
