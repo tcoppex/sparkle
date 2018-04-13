@@ -1,0 +1,4 @@
+bin/
+BUILDs/
+CMakeLists.txt.user
+src/ext/
