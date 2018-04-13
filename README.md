@@ -1,5 +1,6 @@
 
 # Spärkle
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ![screenshot](https://i.imgur.com/TPVEcoe.png)
 
