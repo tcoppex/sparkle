@@ -25,8 +25,9 @@ We will be using the command-line on Unix and [Git Bash](https://git-for-windows
 
 The following dependencies are pulled in as submodules.
 
-- [GLFW 3.2.1](https://github.com/glfw/glfw) as Window Manager,
+- [GLFW 3.2.1](https://github.com/glfw/glfw) as window manager,
 - [GLM 9.8](https://github.com/g-truc/glm/releases/tag/0.9.8.1) as mathematics library.
+- [imgui 1.6](https://github.com/ocornut/imgui) as user interface.
 
 To retrieve them, type the following command line in the project directory :
 ```
