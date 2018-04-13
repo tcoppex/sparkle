@@ -51,7 +51,7 @@ $ make -j4
 On **Windows**, using MSVC 15 for x64:
 ```
 $ cmake .. -G "Visual Studio 15 2017 Win64"
-$ cmake --build . --target all --config Release
+$ cmake --build . --target ALL_BUILD --config Release
 ```
 
 *Notes:*
