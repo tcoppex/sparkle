@@ -13,7 +13,7 @@
 // ----------------------------------------------------------------------------
 
 // Kernel group width used across the particles pipeline.
-#define PARTICLES_KERNEL_GROUP_WIDTH      256u
+#define PARTICLES_KERNEL_GROUP_WIDTH      512u
 
 // ----------------------------------------------------------------------------
 
@@ -72,7 +72,8 @@
 * components are currently used.
 */
 #ifdef __cplusplus
-typedef glm::vec4 vec4;
+#include "glm/glm.hpp"
+using namespace glm;
 #endif
 
 struct TParticle {
