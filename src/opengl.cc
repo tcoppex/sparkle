@@ -85,6 +85,22 @@ unsigned int CountChar(char const* str, unsigned int n, char c) {
   return count;
 }
 
+/* Return true if the given filename is in the list of special extensions. */
+static
+bool IsSpecialFile(const char *fn) {
+  const char* exts[] = { ".hpp" };
+
+  const size_t length_fn = strlen(fn);
+  for (auto ext : exts) {
+    const size_t length_ext = strlen(ext);
+    if (0 == strncmp(fn + length_fn-length_ext, ext, length_ext)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 /* Read the shader and process the #include preprocessors. */
 static
 void ReadShaderFile(char const* filename, unsigned int const maxsize, char out[], int *level) {
@@ -138,16 +154,13 @@ void ReadShaderFile(char const* filename, unsigned int const maxsize, char out[]
     /* Set include global path */
     sprintf(include_path, "%s/%s", SHADERS_DIR, include_fn);
 
-    /* Prevent first level recursivity */
-    if (strcmp(include_path, filename) == 0) {
-      return;
-    }
-
     /* Create memory to hold the include file */
     char *include_file = reinterpret_cast<char*>(calloc(maxsize, sizeof(char)));
 
     /* Retrieve the include file */
-    ReadShaderFile(include_path, maxsize, include_file, level);
+    if (!IsSpecialFile(include_path)) {
+      ReadShaderFile(include_path, maxsize, include_file, level);
+    }
 
     /* Add the line directive to the included file */
     sprintf(include_file, "%s\n#line %u", include_file, newline_count); // [incorrect]
