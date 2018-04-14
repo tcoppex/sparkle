@@ -119,9 +119,13 @@ else()
   if(${PYTHONINTERP_FOUND})
     set(GLEXTGEN_PATH "${TOOLS}/glextgen")
     set(GLEXTGEN_OUTPUT_DIR "${SOURCE_DIR}/ext")
+    list(APPEND GLEXTGEN_OUTPUTS
+      ${GLEXTGEN_OUTPUT_DIR}/_extensions.h
+      ${GLEXTGEN_OUTPUT_DIR}/_extensions.inl
+    )
     add_custom_command(
       OUTPUT
-        ${GLEXTGEN_OUTPUT_DIR}/_extensions.h
+        ${GLEXTGEN_OUTPUTS}
       COMMAND
         ${PYTHON_EXECUTABLE} "${GLEXTGEN_PATH}/main.py"
                              "${GLEXTGEN_PATH}/extensions"
@@ -133,10 +137,6 @@ else()
         ${CMAKE_SOURCE_DIR}
       COMMENT
         "Generate OpenGL extensions headers !!" VERBATIM
-    )
-    list(APPEND GLEXTGEN_OUTPUTS 
-      ${GLEXTGEN_OUTPUT_DIR}/_extensions.h
-      ${GLEXTGEN_OUTPUT_DIR}/_extensions.inl
     )
     add_custom_target(OpenGLExtensionGenerator
       ALL

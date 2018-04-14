@@ -1,13 +1,14 @@
-#ifndef DEMO_APP_H_
-#define DEMO_APP_H_
+#ifndef SPARKLE_APP_H_
+#define SPARKLE_APP_H_
 
 // ----------------------------------------------------------------------------
 
 #include <chrono>
 #include "glm/mat4x4.hpp"
+
 #include "arcball_camera.h"
 #include "scene.h"
-#include "ui.h"
+#include "ui/controller.h"
 
 struct GLFWwindow;
 
@@ -33,7 +34,7 @@ class App {
   std::chrono::steady_clock::time_point time_;
   GLFWwindow *window_;
 
-  UI ui_;
+  UIController ui_;
   ArcBallCamera camera_;
 
   struct {
@@ -49,4 +50,4 @@ class App {
 
 // ----------------------------------------------------------------------------
 
-#endif  // DEMO_APP_H_
+#endif  // SPARKLE_APP_H_

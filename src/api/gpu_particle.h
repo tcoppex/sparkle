@@ -23,6 +23,45 @@ class AppendConsumeBuffer;
 class GPUParticle
 {
 public:
+  static float constexpr kDefaultSimulationVolumeSize = 256.0f;
+
+  enum SimulationVolume {
+    SPHERE,
+    BOX,
+    NONE,
+    kNumSimulationVolume
+  };
+
+  struct SimulationParameters_t {
+    float time_step_factor = 1.0f;
+    float emitter_position[3]  = { 0.0f, 0.0f, 0.0f };
+    float emitter_direction[3] = { 0.0f, 1.0f, 0.0f };
+    float min_age = 0.1f;
+    float max_age = 5.0f;
+    SimulationVolume bounding_volume = SPHERE;
+    float bounding_volume_size = kDefaultSimulationVolumeSize;
+  };
+
+  enum RenderMode {
+    STRETCHED,
+    POINTSPRITE,
+    kNumRenderMode
+  };
+
+  enum ColorMode {
+    DEFAULT,
+    GRADIENT,
+    kNumColorMode
+  };
+
+  struct RenderingParameters_t {
+    RenderMode rendermode = STRETCHED;
+    float stretched_factor = 1.0f;
+    ColorMode colormode = DEFAULT;
+    float birth_gradient[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+    float death_gradient[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+  };
+
   GPUParticle() :
     num_alive_particles_(0u),
     pbuffer_(nullptr),
@@ -31,7 +70,6 @@ public:
     gl_sort_indices_buffer_id_(0u),
     vao_(0u),
     query_time_(0u),
-    simulation_box_size_(kDefaultSimulationBoxSize),
     simulated_(false),
     enable_sorting_(false),
     enable_vectorfield_(true)
@@ -43,12 +81,17 @@ public:
   void update(float const dt, glm::mat4x4 const& view);
   void render(glm::mat4x4 const& view, glm::mat4x4 const& viewProj);
 
+  inline SimulationParameters_t& simulation_parameters() {
+   return simulation_params_;
+  }
+
+  inline RenderingParameters_t& rendering_parameters() {
+   return rendering_params_;
+  }
+
   inline const glm::uvec3& vectorfield_dimensions() const {
     return vectorfield_.dimensions();
   }
-
-  inline float simulation_box_size() const { return simulation_box_size_; }
-  inline void simulation_box_size(float size) { simulation_box_size_ = size; }
 
   inline void enable_sorting(bool status) { enable_sorting_ = status; }
   inline void enable_vectorfield(bool status) { enable_vectorfield_ = status; }
@@ -60,9 +103,6 @@ private:
   // [USER DEFINED]
   static unsigned int const kMaxParticleCount   = (1u << 18u);
   static unsigned int const kBatchEmitCount     = (kMaxParticleCount >> 4u);
-  static float constexpr kDefaultSimulationBoxSize = 256.0f;
-
-  //------------------------------
 
   static
   unsigned int GetThreadsGroupCount(unsigned int const nthreads) {
@@ -81,15 +121,11 @@ private:
   void _postprocess();
   void _sorting(glm::mat4x4 const& view);
 
-  //------------------------------
-
-  struct {
-    float max_age = 1.0f;
-  } params_;
+  SimulationParameters_t simulation_params_;
+  RenderingParameters_t rendering_params_;
 
   unsigned int num_alive_particles_;              //< number of particle written and rendered on last frame.
   AppendConsumeBuffer *pbuffer_;                  //< Append / Consume buffer for particles.
-
   RandomBuffer randbuffer_;                       //< StorageBuffer to hold random values.
   VectorField vectorfield_;                       //< Vector field handler.
 
@@ -113,7 +149,7 @@ private:
       GLint particleMaxAge;
     } emission;
     struct {
-      GLint deltaT;
+      GLint timeStep;
       GLint vectorFieldSampler;
       GLint bboxSize;
     } simulation;
@@ -145,10 +181,7 @@ private:
   GLuint vao_;                                    //< VAO for rendering.
   GLuint query_time_;                             //< QueryObject for benchmarking.
 
-  float simulation_box_size_;                     //< Boundary used by the simulation, if any.
-
-  bool simulated_;
-
+  bool simulated_;                                //< True if particles has been simulated.
   bool enable_sorting_;                           //< True if back-to-front sort is enabled.
   bool enable_vectorfield_;                       //< True if the vector field is used.
 };

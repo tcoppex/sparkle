@@ -75,15 +75,6 @@ unsigned int GetNumTrailingBits(unsigned int const n) {
   return r;
 }
 
-void BindStorageBuffer(GLuint pgm, char const* name, GLuint binding) {
-  GLuint index = glGetProgramResourceIndex(pgm, GL_SHADER_STORAGE_BLOCK, name);
-  if (GL_INVALID_INDEX == index) {
-    fprintf(stderr, "Warning : storage \"%s\" not found.\n", name);
-    return;
-  }
-  glShaderStorageBlockBinding(pgm, index, binding);
-}
-
 }  // namespace
 
 /* -------------------------------------------------------------------------- */
@@ -135,7 +126,7 @@ void GPUParticle::init() {
   ulocation_.emission.emitterPosition  = GetUniformLocation(pgm_.emission, "uEmitterPosition");
   ulocation_.emission.emitterDirection = GetUniformLocation(pgm_.emission, "uEmittterDirection");
   ulocation_.emission.particleMaxAge   = GetUniformLocation(pgm_.emission, "uParticleMaxAge");
-  ulocation_.simulation.deltaT             = GetUniformLocation(pgm_.simulation, "uDeltaT");
+  ulocation_.simulation.timeStep           = GetUniformLocation(pgm_.simulation, "uTimeStep");
   ulocation_.simulation.vectorFieldSampler = GetUniformLocation(pgm_.simulation, "uVectorFieldSampler");
   ulocation_.simulation.bboxSize           = GetUniformLocation(pgm_.simulation, "uBBoxSize");
   ulocation_.calculate_dp.view  = GetUniformLocation(pgm_.calculate_dp, "uViewMatrix");
@@ -154,12 +145,12 @@ void GPUParticle::init() {
   /* Dispatch and Draw Indirect buffer */
   glGenBuffers(1u, &gl_indirect_buffer_id_);
   glBindBuffer(GL_DISPATCH_INDIRECT_BUFFER, gl_indirect_buffer_id_);
-  TIndirectValues const default_indirect[] = {
+  TIndirectValues const default_indirect[] = {{
     // Dispatch values
-    {1u, 1u, 1u,
+    1u, 1u, 1u,
     // Draw values
-    0, 1u, 0u, 0u}
-  };
+    0, 1u, 0u, 0u
+  }};
   glBufferStorage(GL_DISPATCH_INDIRECT_BUFFER, sizeof default_indirect, default_indirect, 0);
   glBindBuffer(GL_DISPATCH_INDIRECT_BUFFER, 0u);
 
@@ -256,24 +247,28 @@ void GPUParticle::update(const float dt, glm::mat4x4 const& view) {
 }
 
 void GPUParticle::render(glm::mat4x4 const& view, glm::mat4x4 const& viewProj) {
-#if 1
-  glUseProgram(pgm_.render_stretched_sprite);
-  {
-    glUniformMatrix4fv(ulocation_.render_stretched_sprite.view, 1, GL_FALSE, glm::value_ptr(view));
-    glUniformMatrix4fv(ulocation_.render_stretched_sprite.mvp,  1, GL_FALSE, glm::value_ptr(viewProj));
-    glUniform1f(ulocation_.render_stretched_sprite.spriteSizeRatio,  50.0f);
-#else
-  glUseProgram(pgm_.render_point_sprite);
-  {
-    glUniformMatrix4fv(ulocation_.render_point_sprite.mvp,  1, GL_FALSE, glm::value_ptr(viewProj));
-#endif
-    glBindVertexArray(vao_);
-      void const *offset = reinterpret_cast<void const*>(offsetof(TIndirectValues, draw_count));
-      glBindBuffer(GL_DRAW_INDIRECT_BUFFER, gl_indirect_buffer_id_);
-      glDrawArraysIndirect(GL_POINTS, offset);
-      glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0u);
-    glBindVertexArray(0u);
+  switch(rendering_params_.rendermode) {
+    case STRETCHED:
+      glUseProgram(pgm_.render_stretched_sprite);
+      glUniformMatrix4fv(ulocation_.render_stretched_sprite.view, 1, GL_FALSE, glm::value_ptr(view));
+      glUniformMatrix4fv(ulocation_.render_stretched_sprite.mvp,  1, GL_FALSE, glm::value_ptr(viewProj));
+      glUniform1f(ulocation_.render_stretched_sprite.spriteSizeRatio,  50.0f);
+    break;
+
+    case POINTSPRITE:
+    default:
+      glUseProgram(pgm_.render_point_sprite);
+      glUniformMatrix4fv(ulocation_.render_point_sprite.mvp,  1, GL_FALSE, glm::value_ptr(viewProj));
+    break;
   }
+
+  glBindVertexArray(vao_);
+    void const *offset = reinterpret_cast<void const*>(offsetof(TIndirectValues, draw_count));
+    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, gl_indirect_buffer_id_);
+    glDrawArraysIndirect(GL_POINTS, offset);
+    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0u);
+  glBindVertexArray(0u);
+
   glUseProgram(0u);
 
   CHECKGLERROR();
@@ -377,9 +372,9 @@ void GPUParticle::_emission(const unsigned int count) {
   glUseProgram(pgm_.emission);
   {
     glUniform1ui(ulocation_.emission.emitCount, count);
-    glUniform3f(ulocation_.emission.emitterPosition, 0.0f, 0.0f, 0.0f);
-    glUniform3f(ulocation_.emission.emitterDirection, 0.0f, 1.0f, 0.0f);
-    glUniform1f(ulocation_.emission.particleMaxAge, params_.max_age);
+    glUniform3fv(ulocation_.emission.emitterPosition, 1, simulation_params_.emitter_position);
+    glUniform3fv(ulocation_.emission.emitterDirection, 1, simulation_params_.emitter_direction);
+    glUniform1f(ulocation_.emission.particleMaxAge, simulation_params_.max_age);
 
     unsigned int const nGroups = GetThreadsGroupCount(count);
     glDispatchCompute(nGroups, 1u, 1u);
@@ -419,9 +414,10 @@ void GPUParticle::_simulation(float const dt) {
 
   glUseProgram(pgm_.simulation);
   {
-    glUniform1f(ulocation_.simulation.deltaT, dt);
+    const float time_step = dt * simulation_params_.time_step_factor;
+    glUniform1f(ulocation_.simulation.timeStep, time_step);
     glUniform1i(ulocation_.simulation.vectorFieldSampler, 0);
-    glUniform1f(ulocation_.simulation.bboxSize, simulation_box_size_);
+    glUniform1f(ulocation_.simulation.bboxSize, simulation_params_.bounding_volume_size);
 
     glBindBuffer(GL_DISPATCH_INDIRECT_BUFFER, gl_indirect_buffer_id_);
       glDispatchComputeIndirect(0);

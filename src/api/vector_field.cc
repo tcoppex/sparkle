@@ -125,7 +125,7 @@ glm::vec3 VectorField::_generate_vector(glm::vec3 const& p) const {
 
   // Stangely, normalizing the value seems to bring error in the shader stage.
   // (particle disappearing)
-  //v = glm::normalize(v);
+  v = 10.0f*glm::normalize(v);
 #endif
 
   return v;

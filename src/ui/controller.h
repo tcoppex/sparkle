@@ -1,31 +1,37 @@
-#ifndef DEMO_UI_H_
-#define DEMO_UI_H_
+#ifndef SPARKLE_UI_UI_CONTROLLER_H_
+#define SPARKLE_UI_UI_CONTROLLER_H_
 
 struct GLFWwindow;
 struct ImDrawData;
+class UIView;
 
-class UI {
+class UIController {
  public:
-  UI() :
+  UIController() :
     window_ptr_(nullptr),
+    mainview_ptr_(nullptr),
     time_(0.0)
   {}
 
   void init(GLFWwindow* window);
   void deinit();
-
   void update();
   void render();
+
+  inline void set_mainview(UIView *view) {
+    mainview_ptr_ = view;
+  }
 
  private:
   void setup_callbacks();
   void create_device_objects();
+  void destroy_device_objects();
   void create_font_texture();
-
-  void render_views();
   void render_frame(ImDrawData* draw_data);
 
+  // TODO : use smart pointers.
   GLFWwindow *window_ptr_;
+  UIView *mainview_ptr_;
   double time_;
 
   struct TDeviceObjects {
@@ -41,10 +47,6 @@ class UI {
     unsigned int vboHandle = 0;
     unsigned int elementsHandle = 0;
   } device_;
-
-  struct TData {
-    bool show_another_window = false;
-  } data_;
 };
 
-#endif // DEMO_UI_H_
+#endif // SPARKLE_UI_UI_CONTROLLER_H_

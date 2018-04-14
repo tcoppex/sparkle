@@ -25,7 +25,7 @@
 // ----------------------------------------------------------------------------
 
 // Time integration step.
-uniform float uDeltaT;
+uniform float uTimeStep;
 // Vector field sampler.
 uniform sampler3D uVectorFieldSampler;
 // Simulation box dimension.
@@ -131,7 +131,7 @@ void PushParticle(in TParticle p) {
 // ----------------------------------------------------------------------------
 
 float UpdateAge(in const TParticle p) {
-  const float decay = 0.01*uDeltaT;
+  const float decay = 0.01*uTimeStep;
   float age = clamp(p.age - decay, 0.0f, p.start_age);
   return age;
 }
@@ -302,7 +302,7 @@ void CollisionHandling(inout vec3 pos, inout vec3 vel) {
 
 layout(local_size_x = PARTICLES_KERNEL_GROUP_WIDTH) in;
 void main() {
-  const vec3 dt = vec3(uDeltaT);
+  const vec3 dt = vec3(uTimeStep);
 
   // Local copy of the particle.
   TParticle p = PopParticle();

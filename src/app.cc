@@ -66,6 +66,7 @@ bool App::init(char const* title) {
 
   /* Initialize the scene. */
   scene_.init();
+  ui_.set_mainview(scene_.view());
 
   /* Start the chrono. */
   time_ = std::chrono::steady_clock::now();
@@ -147,7 +148,6 @@ void App::_update_time() {
   time_ = tick;
 
   deltatime_ = (GetEventData().bSpacePressed) ? 0.0f : static_cast<float>(time_span.count());
-  deltatime_ *= 1.0f;
 }
 
 // ----------------------------------------------------------------------------

@@ -1,36 +1,50 @@
 set(TARGET_NAME "${CMAKE_PROJECT_NAME}_demo")
 
-set(Sources
+list(APPEND Sources
+  main.cc
   app.cc
   events.cc
-  main.cc
   opengl.cc
   scene.cc
-  ui.cc
 
   api/append_consume_buffer.cc
   api/gpu_particle.cc
   api/random_buffer.cc
   api/vector_field.cc
+
+  ui/controller.cc
+
+  ui/views/Debug.cc
+  ui/views/Main.cc
+  ui/views/Rendering.cc
+  ui/views/Simulation.cc
 )
 
-set(Headers
+list(APPEND Headers
   app.h
   arcball_camera.h
   events.h
   opengl.h
   scene.h
-  ui.h
 
   api/append_consume_buffer.h
   api/gpu_particle.h
   api/random_buffer.h
   api/vector_field.h
+
+  ui/controller.h
+  ui/view.h
+
+  ui/views/Debug.h
+  ui/views/Main.h
+  ui/views/Rendering.h
+  ui/views/Simulation.h
+  ui/views/views.h
 )
 
 file(GLOB_RECURSE Miscs 
   ${SHADERS_DIR}/*.glsl 
-  ${SHADERS_DIR}/*.h
+  ${SHADERS_DIR}/sparkle/interop.h
 )
 
 add_executable(${TARGET_NAME}

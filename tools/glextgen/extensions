@@ -60,6 +60,7 @@ glUniform1f
 glUniform1i
 glUniform1ui
 glUniform3f
+glUniform3fv
 glUniform4f
 glUniform4fv
 glUniformMatrix3fv

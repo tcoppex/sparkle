@@ -1,5 +1,5 @@
-#ifndef DEMO_EVENTS_H_
-#define DEMO_EVENTS_H_
+#ifndef SPARKLE_EVENTS_H_
+#define SPARKLE_EVENTS_H_
 
 // ----------------------------------------------------------------------------
 
@@ -27,4 +27,4 @@ extern TEventData const GetEventData();
 
 // ----------------------------------------------------------------------------
 
-#endif // DEMO_EVENTS_H_
+#endif // SPARKLE_EVENTS_H_

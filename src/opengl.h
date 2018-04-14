@@ -1,5 +1,5 @@
-#ifndef DEMO_OPENGL_H_
-#define DEMO_OPENGL_H_
+#ifndef SPARKLE_OPENGL_H_
+#define SPARKLE_OPENGL_H_
 
 // ----------------------------------------------------------------------------
 
@@ -49,4 +49,4 @@ GLuint GetUInteger(GLenum const pname);
 
 // ----------------------------------------------------------------------------
 
-#endif  // DEMO_OPENGL_H_
+#endif  // SPARKLE_OPENGL_H_

@@ -1,18 +1,17 @@
-#include "ui.h"
+#include "ui/controller.h"
 
 #include <cstdlib>
 #include "imgui.h"
 #include "GLFW/glfw3.h"
+
 #include "opengl.h"
+#include "ui/view.h"
 
-
-void UI::init(GLFWwindow* window) {
+void UIController::init(GLFWwindow* window) {
   window_ptr_ = window;
 
   ImGui::CreateContext();
   ImGuiIO& io = ImGui::GetIO();
-
-  io.Fonts->AddFontDefault();
 
   //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
   //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
@@ -54,13 +53,15 @@ void UI::init(GLFWwindow* window) {
 
   // Setup style.
   ImGui::StyleColorsDark();
+  ImGuiStyle& style = ImGui::GetStyle();
+  style.Alpha = 0.85f;
 }
 
-void UI::deinit() {
+void UIController::deinit() {
   ImGui::DestroyContext();
 }
 
-void UI::update() {
+void UIController::update() {
   if (!device_.fontTexture) {
     create_device_objects();
   }
@@ -84,7 +85,6 @@ void UI::update() {
   // Setup inputs
   // (we already got mouse wheel, keyboard keys & characters from glfw callbacks polled in glfwPollEvents())
   if (glfwGetWindowAttrib(window_ptr_, GLFW_FOCUSED)) {
-    // Set OS mouse position if requested (only used when ImGuiConfigFlags_NavEnableSetMousePos is enabled by user)
     if (io.WantSetMousePos) {
       glfwSetCursorPos(window_ptr_, (double)io.MousePos.x, (double)io.MousePos.y);
     } else {
@@ -149,43 +149,16 @@ void UI::update() {
   ImGui::NewFrame();
 }
 
-void UI::render() {
-  render_views();
+void UIController::render() {
+  if (!mainview_ptr_) {
+    return;
+  }
+  mainview_ptr_->render();
   ImGui::Render();
   render_frame(ImGui::GetDrawData());
 }
 
-void UI::render_views() {
-  // 1. Show a simple window.
-  {
-    static float f = 0.0f;
-    static int counter = 0;
-    ImGui::Text("Hello, world!");                           // Display some text (you can use a format string too)
-    ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-    //ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
-
-    ImGui::Checkbox("Another Window", &data_.show_another_window);
-
-    if (ImGui::Button("Button"))                            // Buttons return true when clicked (NB: most widgets return true when edited/activated)
-      counter++;
-    ImGui::SameLine();
-    ImGui::Text("counter = %d", counter);
-
-    double ms = 1000.0f / ImGui::GetIO().Framerate;
-    double framerate = ImGui::GetIO().Framerate;
-    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", ms, framerate);
-  }
-
-  // 2. Show another simple window. In most cases you will use an explicit Begin/End pair to name your windows.
-  if (data_.show_another_window) {
-    ImGui::Begin("Another Window", &data_.show_another_window);
-      ImGui::Text("Hello from another window!");
-      data_.show_another_window = !ImGui::Button("Close Me");
-    ImGui::End();
-  }
-}
-
-void UI::render_frame(ImDrawData* draw_data) {
+void UIController::render_frame(ImDrawData* draw_data) {
   ImGuiIO& io = ImGui::GetIO();
 
   // Avoid rendering when minimized, scale coordinates for retina displays (screen coordinates != framebuffer coordinates)
@@ -219,6 +192,8 @@ void UI::render_frame(ImDrawData* draw_data) {
   GLboolean last_enable_depth_test = glIsEnabled(GL_DEPTH_TEST);
   GLboolean last_enable_scissor_test = glIsEnabled(GL_SCISSOR_TEST);
 
+  //-------------------------
+
   // Setup render state: alpha-blending enabled, no face culling, no depth testing, scissor enabled, polygon fill
   glEnable(GL_BLEND);
   glBlendEquation(GL_FUNC_ADD);
@@ -243,7 +218,9 @@ void UI::render_frame(ImDrawData* draw_data) {
   glBindSampler(0, 0); // Rely on combined texture/sampler state.
 
   // Recreate the VAO every time
-  // (This is to easily allow multiple GL contexts. VAO are not shared among GL contexts, and we don't track creation/deletion of windows so we don't have an obvious key to use to cache them.)
+  // (This is to easily allow multiple GL contexts. VAO are not shared among GL contexts,
+  // and we don't track creation/deletion of windows so we don't have an obvious key
+  // to use to cache them.)
   GLuint vao_handle = 0;
   glGenVertexArrays(1, &vao_handle);
   glBindVertexArray(vao_handle);
@@ -273,14 +250,11 @@ void UI::render_frame(ImDrawData* draw_data) {
                  (const GLvoid*)cmd_list->IdxBuffer.Data,
                  GL_STREAM_DRAW
     );
-    for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
-    {
+    for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++) {
       const ImDrawCmd* pcmd = &cmd_list->CmdBuffer[cmd_i];
       if (pcmd->UserCallback) {
         pcmd->UserCallback(cmd_list, pcmd);
-      }
-      else
-      {
+      } else {
         GLuint texid = static_cast<GLuint>(reinterpret_cast<intptr_t>(pcmd->TextureId));
         glBindTexture(GL_TEXTURE_2D, texid);
         glScissor(static_cast<GLint>(pcmd->ClipRect.x),
@@ -293,6 +267,8 @@ void UI::render_frame(ImDrawData* draw_data) {
     }
   }
   glDeleteVertexArrays(1, &vao_handle);
+
+  //-------------------------
 
   // Restore modified GL state
   glUseProgram(last_program);
@@ -313,18 +289,18 @@ void UI::render_frame(ImDrawData* draw_data) {
   glScissor(last_scissor_box[0], last_scissor_box[1], last_scissor_box[2], last_scissor_box[3]);
 }
 
-void UI::setup_callbacks() {
+void UIController::setup_callbacks() {
   // Conflict with events.cc own callbacks.
 }
 
 /// --------------------------------------------------------------------------
 ///
-/// What follow is basically ImGui examples reworked.
+/// What follow is basically the ImGui example reworked.
 /// [ TODO : integrate more intuitively with the app ]
 ///
 /// --------------------------------------------------------------------------
 
-void UI::create_device_objects() {
+void UIController::create_device_objects() {
   // Backup GL state
   GLint last_texture, last_array_buffer, last_vertex_array;
   glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture);
@@ -340,10 +316,10 @@ void UI::create_device_objects() {
     "out vec4 Frag_Color;\n"
     "void main()\n"
     "{\n"
-    "	Frag_UV = UV;\n"
-    "	Frag_Color = Color;\n"
-    "	gl_Position = ProjMtx * vec4(Position.xy,0,1);\n"
-      "}\n";
+      "	Frag_UV = UV;\n"
+      "	Frag_Color = Color;\n"
+      "	gl_Position = ProjMtx * vec4(Position.xy,0,1);\n"
+    "}\n";
 
   const GLchar* fragment_shader =
     "uniform sampler2D Texture;\n"
@@ -352,7 +328,7 @@ void UI::create_device_objects() {
     "out vec4 Out_Color;\n"
     "void main()\n"
     "{\n"
-    "	Out_Color = Frag_Color * texture( Texture, Frag_UV.st);\n"
+      " Out_Color = Frag_Color * texture( Texture, Frag_UV.st);\n"
     "}\n";
 
   const char glslVersion[32] = "#version 150\n";
@@ -393,7 +369,7 @@ void UI::create_device_objects() {
   CHECKGLERROR();
 }
 
-void UI::create_font_texture() {
+void UIController::create_font_texture() {
   // Build texture atlas
   ImGuiIO& io = ImGui::GetIO();
   unsigned char* pixels;

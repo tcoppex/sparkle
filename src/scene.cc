@@ -2,12 +2,12 @@
 
 #include <array>
 #include <vector>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include "api/gpu_particle.h"
 
-// compressed hard-coded sprite for testing.
-#include "_sprite.h"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtc/type_ptr.hpp"
+
+#include "api/gpu_particle.h"
+#include "ui/views/views.h"
 
 // ============================================================================
 
@@ -33,10 +33,17 @@ void Scene::init() {
   glBlendEquation(GL_FUNC_ADD);
   //glBlendEquation(GL_FUNC_REVERSE_SUBTRACT);
 
+  setup_views();
+
   CHECKGLERROR();
 }
 
 void Scene::deinit() {
+  delete views_.main;
+  delete views_.simulation;
+  delete views_.rendering;
+  delete views_.debug;
+
   gpu_particle_->deinit();
   delete gpu_particle_;
 
@@ -56,12 +63,14 @@ void Scene::update(glm::mat4x4 const &view, float const dt) {
 void Scene::render(glm::mat4x4 const &view, glm::mat4x4 const& viewProj) {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  /* Grid */
-  glEnable(GL_DEPTH_TEST);
-  glDisable(GL_BLEND);
-  draw_grid(viewProj);
+  // -- Grid
+  if (debug_parameters_.show_grid) {
+    glEnable(GL_DEPTH_TEST);
+    glDisable(GL_BLEND);
+    draw_grid(viewProj);
+  }
 
-  /* Particle simulation */
+  // -- Particles
   glDisable(GL_DEPTH_TEST);
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE);
@@ -69,33 +78,48 @@ void Scene::render(glm::mat4x4 const &view, glm::mat4x4 const& viewProj) {
   //gpu_particle_->enable_sorting(true);
   gpu_particle_->render(view, viewProj);
 
-  /* Bounding and test volumes */
+  // -- Bounding and test volumes
+  glm::mat4x4 mvp;
+  glm::vec4 color;
   glEnable(GL_DEPTH_TEST);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-  glm::mat4x4 mvp;
-  glm::vec4 color;
+  const auto &simulation_params = gpu_particle_->simulation_parameters();
 
-  // Simulation bounding box
-  mvp = glm::scale(viewProj, glm::vec3(gpu_particle_->simulation_box_size()));
-  color = glm::vec4(0.5f, 0.4f, 0.5f, 0.5f);
-  draw_wirecube(mvp, color);
+  if (debug_parameters_.show_simulation_volume) {
+    switch (simulation_params.bounding_volume) {
+      case GPUParticle::SPHERE: {
+        const float radius = 0.5f * simulation_params.bounding_volume_size;
+        glm::mat4 model =   glm::translate(glm::mat4(), glm::vec3(0.0f, 0.0f, 0.0f))
+                          * glm::scale(glm::mat4(), glm::vec3(radius));
+        mvp = viewProj * model;
+        color = glm::vec4(0.5f, 0.5f, 0.5f, 0.1f);
+        draw_sphere(mvp, color);
+      }
+      break;
 
-  // Vector field bounding box
+      case GPUParticle::BOX:
+        mvp = glm::scale(viewProj, glm::vec3(simulation_params.bounding_volume_size));
+        color = glm::vec4(0.5f, 0.4f, 0.5f, 0.5f);
+        draw_wirecube(mvp, color);
+      break;
+
+      default:
+      break;
+    }
+  }
+
+  // -- Vector field bounding box
+#if 0
   glm::vec3 const& dim = gpu_particle_->vectorfield_dimensions();
   mvp = glm::scale(viewProj, glm::vec3(dim.x, dim.y, dim.z));
   color = glm::vec4(0.5f, 0.5f, 0.1f, 0.3f);
   draw_wirecube(mvp, color);
+#endif
+}
 
-  /*
-  // Sphere
-  mat4x4_dup(mvp, viewProj);
-  float radius = 64.0f;
-  mat4x4_translate_in_place(mvp, 30.0f, 110.0f, 0.0f);
-  mat4x4_scale_iso(mvp, mvp, radius);
-  vec4_set(color, 0.5f, 0.5f, 0.5f, 0.5f);
-  draw_sphere(mvp, color);
-  */
+UIView* Scene::view() const {
+  return views_.main;
 }
 
 void Scene::setup_shaders() {
@@ -126,10 +150,8 @@ void Scene::setup_grid_geometry() {
   unsigned int const buffersize    = num_vertices * num_component;
   std::vector<float> vertices(buffersize);
 
-
   geo_.grid.resolution = res;
   geo_.grid.nvertices  = static_cast<GLsizei>(num_vertices); //
-
 
   float const cell_padding = world_size / res;
   float const offset = cell_padding * (res/2.0f);
@@ -310,6 +332,7 @@ void Scene::setup_sphere_geometry() {
 }
 
 void Scene::setup_texture() {
+#if 0
   unsigned int const res = sprite_width*sprite_height;
   char *pixels = new char[3u*res];
   char *texdata = new char[res];
@@ -340,14 +363,27 @@ void Scene::setup_texture() {
   glBindTexture(GL_TEXTURE_2D, gl_sprite_tex_);
 
   CHECKGLERROR();
+#endif
 }
 
+void Scene::setup_views() {
+  views_.main = new views::Main();
+  views_.simulation = new views::Simulation(gpu_particle_->simulation_parameters());
+  views_.rendering = new views::Rendering(gpu_particle_->rendering_parameters());
+  views_.debug = new views::Debug(debug_parameters_);
+
+  views_.main->push_view(views_.simulation);
+  views_.main->push_view(views_.rendering);
+  views_.main->push_view(views_.debug);
+}
 
 void Scene::draw_grid(glm::mat4x4 const &mvp) {
+  const auto& simulation_params = gpu_particle_->simulation_parameters();
+
   glUseProgram(pgm_.grid);
   {
     glUniformMatrix4fv(ulocation_.grid.mvp, 1, GL_FALSE, glm::value_ptr(mvp));
-    glUniform1f(ulocation_.grid.scaleFactor, gpu_particle_->simulation_box_size());
+    glUniform1f(ulocation_.grid.scaleFactor, simulation_params.bounding_volume_size);
 
     glBindVertexArray(geo_.grid.vao);
       glDrawArrays(GL_LINES, 0, geo_.grid.nvertices);
