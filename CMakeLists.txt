@@ -140,7 +140,11 @@ else()
     )
     add_custom_target(OpenGLExtensionGenerator
       ALL
-      DEPENDS ${GLEXTGEN_OUTPUTS}
+      DEPENDS
+        ${GLEXTGEN_OUTPUTS}
+      SOURCES
+        "${GLEXTGEN_PATH}/main.py"
+        "${GLEXTGEN_PATH}/extensions"
     )
   else()
     message(FATAL_ERROR "You need either the Python interpreter "
