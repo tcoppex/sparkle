@@ -330,9 +330,10 @@ void main() {
 
     // Get curling noise.
     vec3 noise_vel = GetCurlNoise(p);
+
     // ----------
-    vel += noise_vel;
-    vel = 12.0*normalize(vel);
+    vel = mix(vel, noise_vel, 0.25);
+    vel = 16.0*normalize(vel);//
     // ----------
 
     // Integrate position.

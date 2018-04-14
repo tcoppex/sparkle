@@ -28,7 +28,7 @@ void main() {
   vec3 u = view * IN[0].velocity;
 
   // stretched billboard dimensions.
-  float w = 0.25f;
+  float w = 0.20f;
 
   float speed = smoothstep(0.0f, 500.0, dot(u, u));
   float h = w * mix(1.0f, uSpriteSizeRatio, speed);
