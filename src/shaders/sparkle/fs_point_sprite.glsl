@@ -6,8 +6,6 @@
 
 // ----------------------------------------------------------------------------
 
-uniform sampler2D uSpriteSampler2d;
-
 in VDataBlock {
   vec3 position; // unused legacy of vs_generic
   vec3 velocity; // idem

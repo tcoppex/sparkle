@@ -6,8 +6,6 @@
 
 // ----------------------------------------------------------------------------
 
-uniform sampler2D uSpriteSampler2d;
-
 layout(location = 0) out vec4 fragColor;
 
 in GDataBlock {
