@@ -4,7 +4,7 @@
 namespace views {
 
 void Main::render() {
-  if (!ImGui::Begin("Parameters")) {
+  if (!ImGui::Begin("Parameters", NULL, ImGuiWindowFlags_NoMove)) {
     ImGui::End();
     return;
   }
