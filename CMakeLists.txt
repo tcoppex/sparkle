@@ -79,7 +79,7 @@ if(   (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     -fvisibility=hidden -fno-strict-aliasing -fno-builtin-memcmp
   )
   list(APPEND CXX_FLAGS_RELEASE -O2)
-  list(APPEND CXX_FLAGS_DEBUG   -g -O0 -Wconversion)
+  list(APPEND CXX_FLAGS_DEBUG   -g -O0)# -Wconversion)
 
   #list(APPEND LINK_FLAGS -Wl,--no-undefined)
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
