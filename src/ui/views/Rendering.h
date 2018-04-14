@@ -18,9 +18,17 @@ private:
   static const char *kRenderModeDescriptions[2];
   static const char *kColorModeDescriptions[2];
 
-  static constexpr float kStretchedFactorStep = 0.05f;
-  static constexpr float kStretchedFactorMin = 0.25f;
-  static constexpr float kStretchedFactorMax = 10.0f;
+  static constexpr float kParticleSizeStep = 0.25f;
+  static constexpr float kParticleSizeMin = 0.0f;
+  static constexpr float kParticleSizeMax = 100.0f;
+
+  static constexpr float kStretchedFactorStep = 0.5f;
+  static constexpr float kStretchedFactorMin = 0.5f;
+  static constexpr float kStretchedFactorMax = 500.0f;
+
+  static constexpr float kFadingFactorStep = 0.01f;
+  static constexpr float kFadingFactorMin = 0.01f;
+  static constexpr float kFadingFactorMax = 1.0f;
 };
 
 }  // namespace views

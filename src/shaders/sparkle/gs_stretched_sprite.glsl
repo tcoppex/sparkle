@@ -27,23 +27,23 @@ void main() {
   // Calculate screen-space velocity.
   vec3 u = view * IN[0].velocity;
 
-  // stretched billboard dimensions.
-  float w = 0.20f;
-
-  float speed = smoothstep(0.0f, 500.0, dot(u, u));
-  float h = w * mix(1.0f, uSpriteSizeRatio, speed);
+  const float dp_u = dot(u, u);
 
   // closer to 1, the particle velocity face the camera
-  float nz = abs(normalize(u).z);
+  float nz = abs((u*inversesqrt(dp_u)).z);
   nz *= nz;
 
+  // stretched billboard dimensions.
+  const float w = 0.20f; // TODO : change interactively
+  const float speed = smoothstep(0.0f, 750.0f, dp_u);
+
   // when face to the camera, the particle is not stretched.
-  h = mix(h, w, nz);
+  float h = mix(0.1f, uSpriteSizeRatio, speed);
+  h = mix(h, 1.0f, nz) * w;
 
   // compute screen-space velocity
   u.z = 0.0;
   u = normalize(u);
-  u = normalize(vec3(u.xy, 0.0f));
 
   // orthogonal screen-space vector.
   vec3 v = vec3(-u.y, u.x, 0.0f);

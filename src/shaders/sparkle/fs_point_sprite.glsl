@@ -14,13 +14,12 @@ in VDataBlock {
   float pointSize;
 } IN;
 
-out vec4 fragColor;
+layout(location = 0) out vec4 fragColor;
 
 // ----------------------------------------------------------------------------
 
 void main() {
-  fragColor = compute_color(IN.color, gl_PointCoord);
-  fragColor *= IN.decay;
+  fragColor = compute_color(IN.color, IN.decay, gl_PointCoord);
 }
 
 // ----------------------------------------------------------------------------

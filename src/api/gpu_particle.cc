@@ -125,17 +125,34 @@ void GPUParticle::init() {
   ulocation_.emission.emitCount        = GetUniformLocation(pgm_.emission, "uEmitCount");
   ulocation_.emission.emitterPosition  = GetUniformLocation(pgm_.emission, "uEmitterPosition");
   ulocation_.emission.emitterDirection = GetUniformLocation(pgm_.emission, "uEmittterDirection");
+  ulocation_.emission.particleMinAge   = GetUniformLocation(pgm_.emission, "uParticleMinAge");
   ulocation_.emission.particleMaxAge   = GetUniformLocation(pgm_.emission, "uParticleMaxAge");
+
   ulocation_.simulation.timeStep           = GetUniformLocation(pgm_.simulation, "uTimeStep");
   ulocation_.simulation.vectorFieldSampler = GetUniformLocation(pgm_.simulation, "uVectorFieldSampler");
   ulocation_.simulation.bboxSize           = GetUniformLocation(pgm_.simulation, "uBBoxSize");
+  ulocation_.simulation.boundingVolume     = GetUniformLocation(pgm_.simulation, "uBoundingVolume");
+
   ulocation_.calculate_dp.view  = GetUniformLocation(pgm_.calculate_dp, "uViewMatrix");
+
   ulocation_.sort_step.blockWidth     = GetUniformLocation(pgm_.sort_step, "uBlockWidth");
   ulocation_.sort_step.maxBlockWidth  = GetUniformLocation(pgm_.sort_step, "uMaxBlockWidth");
-  ulocation_.render_point_sprite.mvp = GetUniformLocation(pgm_.render_point_sprite, "uMVP");
+
+  ulocation_.render_point_sprite.mvp             = GetUniformLocation(pgm_.render_point_sprite, "uMVP");
+  ulocation_.render_point_sprite.minParticleSize = GetUniformLocation(pgm_.render_point_sprite, "uMinParticleSize");
+  ulocation_.render_point_sprite.maxParticleSize = GetUniformLocation(pgm_.render_point_sprite, "uMaxParticleSize");
+  ulocation_.render_point_sprite.colorMode       = GetUniformLocation(pgm_.render_point_sprite, "uColorMode");
+  ulocation_.render_point_sprite.birthGradient   = GetUniformLocation(pgm_.render_point_sprite, "uBirthGradient");
+  ulocation_.render_point_sprite.deathGradient   = GetUniformLocation(pgm_.render_point_sprite, "uDeathGradient");
+  ulocation_.render_point_sprite.fadeCoefficient = GetUniformLocation(pgm_.render_point_sprite, "uFadeCoefficient");
+
   ulocation_.render_stretched_sprite.view            = GetUniformLocation(pgm_.render_stretched_sprite, "uView");
   ulocation_.render_stretched_sprite.mvp             = GetUniformLocation(pgm_.render_stretched_sprite, "uMVP");
+  ulocation_.render_stretched_sprite.colorMode       = GetUniformLocation(pgm_.render_stretched_sprite, "uColorMode");
+  ulocation_.render_stretched_sprite.birthGradient   = GetUniformLocation(pgm_.render_stretched_sprite, "uBirthGradient");
+  ulocation_.render_stretched_sprite.deathGradient   = GetUniformLocation(pgm_.render_stretched_sprite, "uDeathGradient");
   ulocation_.render_stretched_sprite.spriteSizeRatio = GetUniformLocation(pgm_.render_stretched_sprite, "uSpriteSizeRatio");
+  ulocation_.render_stretched_sprite.fadeCoefficient = GetUniformLocation(pgm_.render_stretched_sprite, "uFadeCoefficient");
 
   /* One time uniform setting */
   glProgramUniform1i(pgm_.simulation,
@@ -216,6 +233,8 @@ void GPUParticle::update(const float dt, glm::mat4x4 const& view) {
   /* Number of particles to be emitted. */
   unsigned int const emit_count = std::min(kBatchEmitCount, num_dead_particles); //
 
+  float const time_step = dt * simulation_params_.time_step_factor;
+
   /* Update random buffer with new values */
   randbuffer_.generate_values();
 
@@ -228,7 +247,7 @@ void GPUParticle::update(const float dt, glm::mat4x4 const& view) {
       _emission(emit_count);
 
       /* Simulation stage : read buffer A, write buffer B */
-      _simulation(dt);
+      _simulation(time_step);
     }
     randbuffer_.unbind();
     pbuffer_->unbind_atomics();
@@ -252,13 +271,23 @@ void GPUParticle::render(glm::mat4x4 const& view, glm::mat4x4 const& viewProj) {
       glUseProgram(pgm_.render_stretched_sprite);
       glUniformMatrix4fv(ulocation_.render_stretched_sprite.view, 1, GL_FALSE, glm::value_ptr(view));
       glUniformMatrix4fv(ulocation_.render_stretched_sprite.mvp,  1, GL_FALSE, glm::value_ptr(viewProj));
-      glUniform1f(ulocation_.render_stretched_sprite.spriteSizeRatio,  50.0f);
+      glUniform1f(ulocation_.render_stretched_sprite.colorMode, rendering_params_.colormode);
+      glUniform3fv(ulocation_.render_stretched_sprite.birthGradient, 1, rendering_params_.birth_gradient);
+      glUniform3fv(ulocation_.render_stretched_sprite.deathGradient, 1, rendering_params_.death_gradient);
+      glUniform1f(ulocation_.render_stretched_sprite.spriteSizeRatio, rendering_params_.stretched_factor);
+      glUniform1f(ulocation_.render_stretched_sprite.fadeCoefficient, rendering_params_.fading_factor);
     break;
 
     case POINTSPRITE:
     default:
       glUseProgram(pgm_.render_point_sprite);
       glUniformMatrix4fv(ulocation_.render_point_sprite.mvp,  1, GL_FALSE, glm::value_ptr(viewProj));
+      glUniform1f(ulocation_.render_point_sprite.minParticleSize, rendering_params_.min_size);
+      glUniform1f(ulocation_.render_point_sprite.maxParticleSize, rendering_params_.max_size);
+      glUniform1f(ulocation_.render_point_sprite.colorMode, rendering_params_.colormode);
+      glUniform3fv(ulocation_.render_point_sprite.birthGradient, 1, rendering_params_.birth_gradient);
+      glUniform3fv(ulocation_.render_point_sprite.deathGradient, 1, rendering_params_.death_gradient);
+      glUniform1f(ulocation_.render_point_sprite.fadeCoefficient, rendering_params_.fading_factor);
     break;
   }
 
@@ -372,8 +401,9 @@ void GPUParticle::_emission(const unsigned int count) {
   glUseProgram(pgm_.emission);
   {
     glUniform1ui(ulocation_.emission.emitCount, count);
-    glUniform3fv(ulocation_.emission.emitterPosition, 1, simulation_params_.emitter_position);
-    glUniform3fv(ulocation_.emission.emitterDirection, 1, simulation_params_.emitter_direction);
+    glUniform3fv(ulocation_.emission.emitterPosition, 1, simulation_params_.emitter_position); //
+    glUniform3fv(ulocation_.emission.emitterDirection, 1, simulation_params_.emitter_direction); //
+    glUniform1f(ulocation_.emission.particleMinAge, simulation_params_.min_age);
     glUniform1f(ulocation_.emission.particleMaxAge, simulation_params_.max_age);
 
     unsigned int const nGroups = GetThreadsGroupCount(count);
@@ -389,7 +419,7 @@ void GPUParticle::_emission(const unsigned int count) {
   CHECKGLERROR();
 }
 
-void GPUParticle::_simulation(float const dt) {
+void GPUParticle::_simulation(float const time_step) {
   if (num_alive_particles_ == 0u) {
     simulated_ = false;
     return;
@@ -414,9 +444,9 @@ void GPUParticle::_simulation(float const dt) {
 
   glUseProgram(pgm_.simulation);
   {
-    const float time_step = dt * simulation_params_.time_step_factor;
     glUniform1f(ulocation_.simulation.timeStep, time_step);
     glUniform1i(ulocation_.simulation.vectorFieldSampler, 0);
+    glUniform1i(ulocation_.simulation.boundingVolume, simulation_params_.bounding_volume);
     glUniform1f(ulocation_.simulation.bboxSize, simulation_params_.bounding_volume_size);
 
     glBindBuffer(GL_DISPATCH_INDIRECT_BUFFER, gl_indirect_buffer_id_);

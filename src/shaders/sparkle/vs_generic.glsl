@@ -7,6 +7,11 @@ layout(location=1) in vec3 velocity;
 layout(location=2) in vec2 age_info;
 
 uniform mat4 uMVP;
+uniform float uMinParticleSize = 1.0f; //
+uniform float uMaxParticleSize = 6.0f; //
+uniform float uColorMode = 0;
+uniform vec3 uBirthGradient = vec3(1.0f, 0.0f, 0.0f);
+uniform vec3 uDeathGradient = vec3(0.0f);
 
 out VDataBlock {
   vec3 position;
@@ -42,13 +47,26 @@ float curve_inout(in float x, in float edge) {
 // ----------------------------------------------------------------------------
 
 float compute_size(float z, float decay) {
-  const float min_size = 1.0f;
-  const float max_size = 6.0f;
-  const float depth = 1.0f; //(max_size-min_size) / (z);
+  const float min_size = uMinParticleSize;
+  const float max_size = uMaxParticleSize;
+
+  // tricks to 'zoom-in' the pointsprite, just set to 1 to have normal size.
+  const float depth = (max_size-min_size) / (z);
 
   float size = mix(min_size, max_size, decay * depth);
 
   return size;
+}
+
+// ----------------------------------------------------------------------------
+
+vec3 base_color(in vec3 position, in float decay) {
+  // Gradient mode
+  if (uColorMode == 1) {
+    return mix(uBirthGradient, uDeathGradient, decay);
+  }
+  // Default mode
+  return 0.5f * (normalize(position) + 1.0f);
 }
 
 // ----------------------------------------------------------------------------
@@ -58,7 +76,7 @@ void main() {
 
   // Time alived in [0, 1].
   const float dAge = 1.0f - maprange(0.0f, age_info.x, age_info.y);
-  const float decay = curve_inout(dAge, 0.15f);
+  const float decay = curve_inout(dAge, 0.52f);
 
   // Vertex attributes.
   gl_Position = uMVP * vec4(p, 1.0f);
@@ -67,7 +85,7 @@ void main() {
   // Output parameters.
   OUT.position = p;
   OUT.velocity = velocity.xyz;
-  OUT.color = 0.5f * (normalize(p) + 1.0f);
+  OUT.color = base_color(position, decay);
   OUT.decay = decay;
   OUT.pointSize = gl_PointSize;
 }

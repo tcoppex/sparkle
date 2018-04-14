@@ -31,7 +31,6 @@ void Scene::init() {
   glEnable(GL_PROGRAM_POINT_SIZE);
 
   glBlendEquation(GL_FUNC_ADD);
-  //glBlendEquation(GL_FUNC_REVERSE_SUBTRACT);
 
   setup_views();
 
@@ -57,6 +56,9 @@ void Scene::deinit() {
 }
 
 void Scene::update(glm::mat4x4 const &view, float const dt) {
+  if (debug_parameters_.freeze) {
+    return;
+  }
   gpu_particle_->update(dt, view);
 }
 
@@ -73,9 +75,12 @@ void Scene::render(glm::mat4x4 const &view, glm::mat4x4 const& viewProj) {
   // -- Particles
   glDisable(GL_DEPTH_TEST);
   glEnable(GL_BLEND);
+
   glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+
   //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   //gpu_particle_->enable_sorting(true);
+
   gpu_particle_->render(view, viewProj);
 
   // -- Bounding and test volumes

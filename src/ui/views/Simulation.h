@@ -17,12 +17,12 @@ class Simulation : public ParametrizedUIView<GPUParticle::SimulationParameters_t
  private:
   static const char *kSimulationVolumeDescriptions[3];
 
-  static constexpr float kTimestepFactorStep = 0.1f;
-  static constexpr float kTimestepFactorMin = 0.0f;
+  static constexpr float kTimestepFactorStep = 0.05f;
+  static constexpr float kTimestepFactorMin =-10.0f;
   static constexpr float kTimestepFactorMax = 10.0f;
   static constexpr float kAgeRangeStep = 0.01f;
   static constexpr float kAgeRangeMin = 0.01f;
-  static constexpr float kAgeRangeMax = 10.0f;
+  static constexpr float kAgeRangeMax = 5.0f;
 };
 
 }  // namespace views

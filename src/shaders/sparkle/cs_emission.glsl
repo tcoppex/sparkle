@@ -15,7 +15,8 @@
 layout(location=0) uniform uint uEmitCount;
 layout(location=1) uniform vec3 uEmitterPosition;
 layout(location=2) uniform vec3 uEmitterDirection;
-layout(location=3) uniform float uParticleMaxAge;
+layout(location=3) uniform float uParticleMinAge;
+layout(location=4) uniform float uParticleMaxAge;
 
 //-----------------------------------------------------------------------------
 
@@ -105,7 +106,7 @@ void CreateParticle(const uint gid) {
 #endif
 
   // The age is set by group to assure to have a number of particles factor of groupWidth.
-  float age = uParticleMaxAge * mix( 0.2f, 1.0f, randbuffer[gl_WorkGroupID.x]);
+  float age = mix( uParticleMinAge, uParticleMaxAge, randbuffer[gl_WorkGroupID.x]);
   // ---------------------
 
   PushParticle(pos, vel, age);

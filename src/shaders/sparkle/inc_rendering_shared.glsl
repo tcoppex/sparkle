@@ -1,7 +1,8 @@
 
 uniform sampler2D uSpriteSampler2d;
+uniform float uFadeCoefficient = 0.25f;
 
-vec4 compute_color(in vec3 base_color, in vec2 texcoord) {
+vec4 compute_color(in vec3 base_color, in float decay, in vec2 texcoord) {
   vec4 color = vec4(base_color, 1.0f);
 
   // Centered coordinates.
@@ -13,7 +14,7 @@ vec4 compute_color(in vec3 base_color, in vec2 texcoord) {
   float alpha = smoothstep(0.0f, 1.0f, d);
 
   //color = texture(uSpriteSampler2d, texcoord).rrrr;
-  color *= alpha;
+  color *= alpha * decay * uFadeCoefficient;
 
   return color;
 }

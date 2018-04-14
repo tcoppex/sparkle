@@ -24,7 +24,7 @@ bool App::init(char const* title) {
 
   /* Initialize OpenGL context flags */
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   glfwWindowHint(GLFW_RESIZABLE, 0);
 
@@ -147,7 +147,7 @@ void App::_update_time() {
   std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(tick - time_);
   time_ = tick;
 
-  deltatime_ = (GetEventData().bSpacePressed) ? 0.0f : static_cast<float>(time_span.count());
+  deltatime_ = static_cast<float>(time_span.count());
 }
 
 // ----------------------------------------------------------------------------

@@ -37,7 +37,7 @@ public:
     float emitter_position[3]  = { 0.0f, 0.0f, 0.0f };
     float emitter_direction[3] = { 0.0f, 1.0f, 0.0f };
     float min_age = 0.1f;
-    float max_age = 5.0f;
+    float max_age = 1.0f;
     SimulationVolume bounding_volume = SPHERE;
     float bounding_volume_size = kDefaultSimulationVolumeSize;
   };
@@ -56,10 +56,13 @@ public:
 
   struct RenderingParameters_t {
     RenderMode rendermode = STRETCHED;
-    float stretched_factor = 1.0f;
+    float stretched_factor = 50.0f;
     ColorMode colormode = DEFAULT;
     float birth_gradient[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
     float death_gradient[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+    float min_size = 0.0f;
+    float max_size = 20.0f;
+    float fading_factor = 0.25f;
   };
 
   GPUParticle() :
@@ -117,7 +120,7 @@ private:
   void _setup_render();
 
   void _emission(unsigned int const count);
-  void _simulation(float const dt);
+  void _simulation(float const time_step);
   void _postprocess();
   void _sorting(glm::mat4x4 const& view);
 
@@ -146,12 +149,14 @@ private:
       GLint emitCount;
       GLint emitterPosition;
       GLint emitterDirection;
+      GLint particleMinAge;
       GLint particleMaxAge;
     } emission;
     struct {
       GLint timeStep;
       GLint vectorFieldSampler;
       GLint bboxSize;
+      GLint boundingVolume;
     } simulation;
     struct {
       GLint view;
@@ -162,11 +167,21 @@ private:
     } sort_step;
     struct {
       GLint mvp;
+      GLint minParticleSize;
+      GLint maxParticleSize;
+      GLint colorMode;
+      GLint birthGradient;
+      GLint deathGradient;
+      GLint fadeCoefficient;
     } render_point_sprite;
     struct {
       GLint view;
       GLint mvp;
+      GLint colorMode;
+      GLint birthGradient;
+      GLint deathGradient;
       GLint spriteSizeRatio;
+      GLint fadeCoefficient;
     } render_stretched_sprite;
   } ulocation_;                                   //< Programs uniform location.
 

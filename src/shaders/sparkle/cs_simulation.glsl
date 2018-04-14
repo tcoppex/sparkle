@@ -28,7 +28,8 @@
 uniform float uTimeStep;
 // Vector field sampler.
 uniform sampler3D uVectorFieldSampler;
-// Simulation box dimension.
+// Simulation volume.
+uniform int uBoundingVolume;
 uniform float uBBoxSize;
 
 // ----------------------------------------------------------------------------
@@ -294,8 +295,8 @@ void CollideBox(in vec3 corner, in vec3 center, inout vec3 pos, inout vec3 vel) 
 void CollisionHandling(inout vec3 pos, inout vec3 vel) {
   const float r = 0.5f * uBBoxSize;
 
-  CollideSphere(r, vec3(0.0f), pos, vel);
-  CollideBox(vec3(r), vec3(0.0f), pos, vel);
+  if (uBoundingVolume == 0) CollideSphere(r, vec3(0.0f), pos, vel);
+  if (uBoundingVolume == 1) CollideBox(vec3(r), vec3(0.0f), pos, vel);
 }
 
 // ----------------------------------------------------------------------------
