@@ -14,9 +14,9 @@ It is written in **C++ 14** and **OpenGL 4.4**.
 - Bitonic Sorting for alpha-blending,
 - Curl Noise,
 - 3D Vector Field,
-- *Structure of Arrays* and *Array of Structures* data layout patterns,
+- *Structure of Arrays* and *Array of Structures* data layout patterns.
 
-For more image, check the [gallery](https://imgur.com/a/uMMGV)
+For more images, check the [gallery](https://imgur.com/a/uMMGV).
 
 ## Quickstart
 
