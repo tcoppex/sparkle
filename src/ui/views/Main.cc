@@ -4,6 +4,9 @@
 namespace views {
 
 void Main::render() {
+  ImGui::SetNextWindowPos(ImVec2(8,8));
+  ImGui::SetNextWindowSize(ImVec2(316, 850));
+
   if (!ImGui::Begin("Parameters", NULL, ImGuiWindowFlags_NoMove)) {
     ImGui::End();
     return;
