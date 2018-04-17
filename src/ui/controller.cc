@@ -1,10 +1,10 @@
 #include "ui/controller.h"
 
 #include <cstdlib>
-#include "imgui.h"
-#include "GLFW/glfw3.h"
 
 #include "opengl.h"
+#include "imgui.h"
+#include "GLFW/glfw3.h"
 #include "ui/view.h"
 
 void UIController::init(GLFWwindow* window) {
