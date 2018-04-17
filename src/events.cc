@@ -1,6 +1,6 @@
 #include "events.h"
-#include "GLFW/glfw3.h"
 #include "imgui.h"
+#include "glfw.h"
 
 /* -------------------------------------------------------------------------- */
 

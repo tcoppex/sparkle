@@ -26,6 +26,7 @@ list(APPEND Headers
   events.h
   opengl.h
   scene.h
+  glfw.h
 
   api/append_consume_buffer.h
   api/gpu_particle.h

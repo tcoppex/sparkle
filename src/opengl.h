@@ -1,22 +1,7 @@
 #ifndef SPARKLE_OPENGL_H_
 #define SPARKLE_OPENGL_H_
 
-// ----------------------------------------------------------------------------
-
-/* Use GLEW if enabled, otherwise load extensions manually. */
-
-#ifdef USE_GLEW
-#include "GL/glew.h"
-#endif
-
-#include "GLFW/glfw3.h"
-
-#ifndef GLEW_VERSION_4_3
-/* Automatically generated macros to extension's function. */
-#include "ext/_extensions.h"
-#endif
-
-// ----------------------------------------------------------------------------
+#include "glfw.h"
 
 /* OpenGL debug macro */
 #ifdef NDEBUG
