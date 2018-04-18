@@ -13,10 +13,12 @@
 //-----------------------------------------------------------------------------
 
 layout(location=0) uniform uint uEmitCount;
-layout(location=1) uniform vec3 uEmitterPosition;
-layout(location=2) uniform vec3 uEmitterDirection;
-layout(location=3) uniform float uParticleMinAge;
-layout(location=4) uniform float uParticleMaxAge;
+layout(location=1) uniform uint uEmitterType;
+layout(location=2) uniform vec3 uEmitterPosition;
+layout(location=3) uniform vec3 uEmitterDirection;
+layout(location=4) uniform float uEmitterRadius;
+layout(location=5) uniform float uParticleMinAge;
+layout(location=6) uniform float uParticleMaxAge;
 
 //-----------------------------------------------------------------------------
 
@@ -66,7 +68,7 @@ void PushParticle(in vec3 position,
 #if SPARKLE_USE_SOA_LAYOUT
   positions[id]  = vec4(position, 1.0f);
   velocities[id] = vec4(velocity, 0.0f);
-  attributes[id] = vec4(age, age, 0.0f, uintBitsToFloat(id)); //
+  attributes[id] = vec4(age, age, 0.0f, uintBitsToFloat(id));
 #else
   TParticle p;
   p.position = vec4(position, 1.0f);
@@ -86,28 +88,27 @@ void CreateParticle(const uint gid) {
   const uint rid = 3u * gid;
   const vec3 rn = vec3(randbuffer[rid], randbuffer[rid+1u], randbuffer[rid+2u]);
 
-  // ---------------------
+  // Position
   vec3 pos = uEmitterPosition;
+  if (uEmitterType == 1) {
+    pos += disk_distribution(uEmitterRadius, rn.xy);
+  } else if (uEmitterType == 2) {
+    pos += sphere_distribution(uEmitterRadius, rn.xy);
+  } else if (uEmitterType == 3) {
+    pos += ball_distribution(uEmitterRadius, rn);
+  }
+
+  // Velocity
   vec3 vel = uEmitterDirection;
 
-  float r = 60.0f * rn.x;
-  vec3 theta = rn * TwoPi();
-
-#if 0
-  // Position in a sphere with omnidirectional velocity.
-  pos = r * uEmitterDirection * rotationZ(theta.z) * rotationY(theta.y);
-  //vel = normalize(pos);
-#else
-  // Position on a plate going up.
-  pos.x = r * cos(theta.y);
-  pos.y = 0.1f * rn.z;
-  pos.z = r * sin(theta.y);
-  //vel = vec3(0.0f);
-#endif
-
-  // The age is set by group to assure to have a number of particles factor of groupWidth.
-  float age = mix( uParticleMinAge, uParticleMaxAge, randbuffer[gl_WorkGroupID.x]);
-  // ---------------------
+  // Age
+  // The age is set by thread groups to assure we have a number of particles
+  // factors of groupWidth, this method is safe but prevents continuous emission.
+  const float group_rand = randbuffer[gl_WorkGroupID.x];
+  // [As the threadgroup are not full, some dead particles might appears if not
+  // skipped in following stages].
+  //const float single_rand = randbuffer[gid];
+  const float age = mix( uParticleMinAge, uParticleMaxAge, group_rand);
 
   PushParticle(pos, vel, age);
 }
