@@ -18,7 +18,8 @@ class Scene {
  public:
   struct DebugParameters_t {
     bool show_grid = true;
-    bool show_simulation_volume = false;
+    bool show_emitter = true;
+    bool show_simulation_volume = true;
     bool freeze = false;
   };
 
@@ -44,7 +45,7 @@ class Scene {
 
   void draw_grid(glm::mat4x4 const &mvp);
   void draw_wirecube(glm::mat4x4 const &mvp, const glm::vec4 &color);
-  void draw_sphere(glm::mat4x4 const &mvp, const glm::vec4 &color);
+  void draw_sphere(glm::mat4x4 const &mvp, const glm::vec4 &color, bool bFill = false);
 
   DebugParameters_t debug_parameters_;
 

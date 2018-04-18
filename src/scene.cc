@@ -65,27 +65,64 @@ void Scene::update(glm::mat4x4 const &view, float const dt) {
 void Scene::render(glm::mat4x4 const &view, glm::mat4x4 const& viewProj) {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  // -- Grid
+  const auto& simulation_parameters = gpu_particle_->simulation_parameters();
+  glm::mat4x4 mvp;
+  glm::mat4x4 model;
+  glm::vec4 color;
+
+  glEnable(GL_DEPTH_TEST);
+  glDisable(GL_BLEND);
+
+  // -- SOLID OBJECTS
+
+  // Grid
   if (debug_parameters_.show_grid) {
-    glEnable(GL_DEPTH_TEST);
-    glDisable(GL_BLEND);
     draw_grid(viewProj);
   }
 
-  // -- Particles
+  // -- TRANSPARENT OBJECTS
+
   glDisable(GL_DEPTH_TEST);
   glEnable(GL_BLEND);
 
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+  if (true) {
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+  } else {
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    gpu_particle_->enable_sorting(true);
+  }
 
-  //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  //gpu_particle_->enable_sorting(true);
+  // Debug emitter object.
+  if (debug_parameters_.show_emitter) {
+    const float radius = simulation_parameters.emitter_radius;
+    glm::vec3 scale(1.0f);
 
+    switch (simulation_parameters.emitter_type) {
+      case GPUParticle::EMITTER_DISK:
+        scale = glm::vec3(radius, 1.0f, radius);
+      break;
+
+      case GPUParticle::EMITTER_SPHERE:
+        scale = glm::vec3(radius);
+      break;
+
+      case GPUParticle::EMITTER_POINT:
+      default:
+      break;
+    }
+
+    const float *v = simulation_parameters.emitter_position;
+    model =   glm::translate(glm::mat4(), glm::vec3(v[0], v[1], v[2]))
+            * glm::scale(glm::mat4(), scale);
+    color = glm::vec4(0.9f, 0.9f, 1.0f, 0.05f);
+    mvp = viewProj * model;
+    draw_sphere(mvp, color, true);
+  }
+
+  // Particles
   gpu_particle_->render(view, viewProj);
 
-  // -- Bounding and test volumes
-  glm::mat4x4 mvp;
-  glm::vec4 color;
+  // Bounding and test volumes
   glEnable(GL_DEPTH_TEST);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -93,17 +130,17 @@ void Scene::render(glm::mat4x4 const &view, glm::mat4x4 const& viewProj) {
 
   if (debug_parameters_.show_simulation_volume) {
     switch (simulation_params.bounding_volume) {
-      case GPUParticle::SPHERE: {
+      case GPUParticle::VOLUME_SPHERE: {
         const float radius = 0.5f * simulation_params.bounding_volume_size;
-        glm::mat4 model =   glm::translate(glm::mat4(), glm::vec3(0.0f, 0.0f, 0.0f))
-                          * glm::scale(glm::mat4(), glm::vec3(radius));
+        model =   glm::translate(glm::mat4(), glm::vec3(0.0f, 0.0f, 0.0f))
+                * glm::scale(glm::mat4(), glm::vec3(radius));
         mvp = viewProj * model;
         color = glm::vec4(0.5f, 0.5f, 0.5f, 0.1f);
         draw_sphere(mvp, color);
       }
       break;
 
-      case GPUParticle::BOX:
+      case GPUParticle::VOLUME_BOX:
         mvp = glm::scale(viewProj, glm::vec3(simulation_params.bounding_volume_size));
         color = glm::vec4(0.5f, 0.4f, 0.5f, 0.5f);
         draw_wirecube(mvp, color);
@@ -414,14 +451,16 @@ void Scene::draw_wirecube(glm::mat4x4 const &mvp, glm::vec4 const &color) {
   CHECKGLERROR();
 }
 
-void Scene::draw_sphere(glm::mat4x4 const &mvp, glm::vec4 const &color) {
+void Scene::draw_sphere(glm::mat4x4 const &mvp, glm::vec4 const &color, bool bFill) {
+  GLenum mode = (bFill) ? GL_TRIANGLE_STRIP : GL_LINES;
+
   glUseProgram(pgm_.basic);
   {
     glUniformMatrix4fv(ulocation_.basic.mvp, 1, GL_FALSE, glm::value_ptr(mvp));
     glUniform4fv(ulocation_.basic.color, 1u, glm::value_ptr(color));
 
     glBindVertexArray(geo_.sphere.vao);
-      glDrawArrays(GL_LINES, 0, geo_.sphere.nvertices);
+      glDrawArrays(mode, 0, geo_.sphere.nvertices);
     glBindVertexArray(0u);
   }
   glUseProgram(0u);

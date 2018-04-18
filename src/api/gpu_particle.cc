@@ -123,8 +123,10 @@ void GPUParticle::init() {
 
   /* Get uniform locations */
   ulocation_.emission.emitCount        = GetUniformLocation(pgm_.emission, "uEmitCount");
+  ulocation_.emission.emitterType      = GetUniformLocation(pgm_.emission, "uEmitterType");
   ulocation_.emission.emitterPosition  = GetUniformLocation(pgm_.emission, "uEmitterPosition");
-  ulocation_.emission.emitterDirection = GetUniformLocation(pgm_.emission, "uEmittterDirection");
+  ulocation_.emission.emitterDirection = GetUniformLocation(pgm_.emission, "uEmitterDirection");
+  ulocation_.emission.emitterRadius    = GetUniformLocation(pgm_.emission, "uEmitterRadius");
   ulocation_.emission.particleMinAge   = GetUniformLocation(pgm_.emission, "uParticleMinAge");
   ulocation_.emission.particleMaxAge   = GetUniformLocation(pgm_.emission, "uParticleMaxAge");
 
@@ -267,7 +269,7 @@ void GPUParticle::update(const float dt, glm::mat4x4 const& view) {
 
 void GPUParticle::render(glm::mat4x4 const& view, glm::mat4x4 const& viewProj) {
   switch(rendering_params_.rendermode) {
-    case STRETCHED:
+    case RENDERMODE_STRETCHED:
       glUseProgram(pgm_.render_stretched_sprite);
       glUniformMatrix4fv(ulocation_.render_stretched_sprite.view, 1, GL_FALSE, glm::value_ptr(view));
       glUniformMatrix4fv(ulocation_.render_stretched_sprite.mvp,  1, GL_FALSE, glm::value_ptr(viewProj));
@@ -278,7 +280,7 @@ void GPUParticle::render(glm::mat4x4 const& view, glm::mat4x4 const& viewProj) {
       glUniform1f(ulocation_.render_stretched_sprite.fadeCoefficient, rendering_params_.fading_factor);
     break;
 
-    case POINTSPRITE:
+    case RENDERMODE_POINTSPRITE:
     default:
       glUseProgram(pgm_.render_point_sprite);
       glUniformMatrix4fv(ulocation_.render_point_sprite.mvp,  1, GL_FALSE, glm::value_ptr(viewProj));
@@ -393,16 +395,23 @@ void GPUParticle::_setup_render() {
 
 void GPUParticle::_emission(const unsigned int count) {
   /* Emit only if a minimum count is reached. */
-  if (!count || (count < kBatchEmitCount)) {
+  if (!count) {
     return;
   }
+  /*
+  if (count < kBatchEmitCount) {
+    return;
+  }
+  */
   //fprintf(stderr, "> %7u particles to emit.\n", count);
 
   glUseProgram(pgm_.emission);
   {
     glUniform1ui(ulocation_.emission.emitCount, count);
-    glUniform3fv(ulocation_.emission.emitterPosition, 1, simulation_params_.emitter_position); //
-    glUniform3fv(ulocation_.emission.emitterDirection, 1, simulation_params_.emitter_direction); //
+    glUniform1ui(ulocation_.emission.emitterType, simulation_params_.emitter_type);
+    glUniform3fv(ulocation_.emission.emitterPosition, 1, simulation_params_.emitter_position);
+    glUniform3fv(ulocation_.emission.emitterDirection, 1, simulation_params_.emitter_direction);
+    glUniform1f(ulocation_.emission.emitterRadius, simulation_params_.emitter_radius);
     glUniform1f(ulocation_.emission.particleMinAge, simulation_params_.min_age);
     glUniform1f(ulocation_.emission.particleMaxAge, simulation_params_.max_age);
 

@@ -3,6 +3,7 @@
 
 /* -------------------------------------------------------------------------- */
 
+#include <algorithm>
 #include <glm/mat4x4.hpp>
 #include <glm/vec4.hpp>
 #include "opengl.h"
@@ -25,44 +26,54 @@ class GPUParticle
 public:
   static float constexpr kDefaultSimulationVolumeSize = 256.0f;
 
+  enum EmitterType {
+    EMITTER_POINT,
+    EMITTER_DISK,
+    EMITTER_SPHERE,
+    EMITTER_BALL,
+    kNumEmitterType
+  };
+
   enum SimulationVolume {
-    SPHERE,
-    BOX,
-    NONE,
+    VOLUME_SPHERE,
+    VOLUME_BOX,
+    VOLUME_NONE,
     kNumSimulationVolume
   };
 
   struct SimulationParameters_t {
     float time_step_factor = 1.0f;
+    float min_age = 0.1f;
+    float max_age = 0.2f;
+    EmitterType emitter_type = EmitterType::EMITTER_SPHERE;
     float emitter_position[3]  = { 0.0f, 0.0f, 0.0f };
     float emitter_direction[3] = { 0.0f, 1.0f, 0.0f };
-    float min_age = 0.1f;
-    float max_age = 1.0f;
-    SimulationVolume bounding_volume = SPHERE;
+    float emitter_radius = 64.0f;
+    SimulationVolume bounding_volume = SimulationVolume::VOLUME_BOX;
     float bounding_volume_size = kDefaultSimulationVolumeSize;
   };
 
   enum RenderMode {
-    STRETCHED,
-    POINTSPRITE,
+    RENDERMODE_STRETCHED,
+    RENDERMODE_POINTSPRITE,
     kNumRenderMode
   };
 
   enum ColorMode {
-    DEFAULT,
-    GRADIENT,
+    COLORMODE_DEFAULT,
+    COLORMODE_GRADIENT,
     kNumColorMode
   };
 
   struct RenderingParameters_t {
-    RenderMode rendermode = STRETCHED;
-    float stretched_factor = 50.0f;
-    ColorMode colormode = DEFAULT;
-    float birth_gradient[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
-    float death_gradient[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-    float min_size = 0.0f;
-    float max_size = 20.0f;
-    float fading_factor = 0.25f;
+    RenderMode rendermode = RENDERMODE_POINTSPRITE;
+    float stretched_factor = 10.0f;
+    ColorMode colormode = COLORMODE_DEFAULT;
+    float birth_gradient[4] = { 0.0f, 1.0f, 0.0f, 1.0f };
+    float death_gradient[4] = { 1.0f, 0.0f, 0.0f, 0.0f };
+    float min_size = 0.75f;
+    float max_size = 25.0f;
+    float fading_factor = 0.5f;
   };
 
   GPUParticle() :
@@ -104,8 +115,8 @@ private:
   static unsigned int const kThreadsGroupWidth;
 
   // [USER DEFINED]
-  static unsigned int const kMaxParticleCount   = (1u << 18u);
-  static unsigned int const kBatchEmitCount     = (kMaxParticleCount >> 4u);
+  static unsigned int const kMaxParticleCount   = (1u << 16u);
+  static unsigned int const kBatchEmitCount     = std::max(256u, (kMaxParticleCount >> 4u));
 
   static
   unsigned int GetThreadsGroupCount(unsigned int const nthreads) {
@@ -147,8 +158,10 @@ private:
   struct {
     struct {
       GLint emitCount;
+      GLint emitterType;
       GLint emitterPosition;
       GLint emitterDirection;
+      GLint emitterRadius;
       GLint particleMinAge;
       GLint particleMaxAge;
     } emission;
