@@ -18,7 +18,9 @@
 // ----------------------------------------------------------------------------
 
 // Decide which structure layout to use.
-#define SPARKLE_USE_SOA_LAYOUT              1
+#ifndef SPARKLE_USE_SOA_LAYOUT
+#define SPARKLE_USE_SOA_LAYOUT              TRUE
+#endif
 
 /// @note
 /// GPUParticle should hold all the main buffer objects it uses and give
