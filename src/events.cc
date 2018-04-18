@@ -55,13 +55,14 @@ TEventData const GetEventData() {
 
 static
 void keyboard_cb(GLFWwindow *window, int key, int, int action, int) {
-  if (ImGui::GetIO().WantCaptureKeyboard) {
-    return;
-  }
-
   if (    (key == GLFW_KEY_ESCAPE)
        && (action == GLFW_PRESS)) {
       glfwSetWindowShouldClose(window, 1);
+  }
+
+  // When the UI capture keyboard, don't process it.
+  if (ImGui::GetIO().WantCaptureKeyboard) {
+    return;
   }
 
   if (    (key == GLFW_KEY_SPACE)
