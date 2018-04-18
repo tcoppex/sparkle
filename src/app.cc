@@ -131,9 +131,8 @@ void App::_update_camera() {
                              glm::vec3(0.0f, 0.0f, 0.0f),
                              glm::vec3(0.0f, 1.0f, 0.0f));
   glm::translate(matrix_.view, glm::vec3(camera_.translate_x(), camera_.translate_y(), 0.0f));
-
-  matrix_.view = glm::rotate(glm::rotate(
-    matrix_.view, camera_.yaw(), glm::vec3(1.0f, 0.0f, 0.0f)),
+  matrix_.view = glm::rotate(
+    glm::rotate(matrix_.view, camera_.yaw(), glm::vec3(1.0f, 0.0f, 0.0f)),
     camera_.pitch(), glm::vec3(0.0f, 1.0f, 0.0f)
   );
 
