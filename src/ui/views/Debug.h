@@ -8,7 +8,7 @@ namespace views {
 
 class Debug : public ParametrizedUIView<Scene::DebugParameters_t> {
  public:
-  Debug(Scene::DebugParameters_t &params) : ParametrizedUIView(params) {}
+  Debug(TParameters &params) : ParametrizedUIView(params) {}
 
   void render() override;
 };

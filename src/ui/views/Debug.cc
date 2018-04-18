@@ -9,6 +9,7 @@ void Debug::render() {
   }
 
   ImGui::Checkbox("Show grid", &params_.show_grid);
+  ImGui::Checkbox("Show emitter", &params_.show_emitter);
   ImGui::Checkbox("Show simulation volume", &params_.show_simulation_volume);
   ImGui::Checkbox("Freeze", &params_.freeze);
 }
