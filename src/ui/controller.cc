@@ -12,7 +12,7 @@ void UIController::init(GLFWwindow* window) {
   ImGui::CreateContext();
   ImGuiIO& io = ImGui::GetIO();
 
-  //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
+  io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
   //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
   io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;
   io.BackendFlags |= ImGuiBackendFlags_HasSetMousePos;
@@ -139,10 +139,11 @@ void UIController::update() {
       MAP_ANALOG(ImGuiNavInput_LStickDown, 1,  -0.3f,  -0.9f);
       #undef MAP_BUTTON
       #undef MAP_ANALOG
-      if (axes_count > 0 && buttons_count > 0)
+      if (axes_count > 0 && buttons_count > 0) {
         io.BackendFlags |= ImGuiBackendFlags_HasGamepad;
-      else
+      } else {
         io.BackendFlags &= ~ImGuiBackendFlags_HasGamepad;
+      }
   }
 
   ImGui::NewFrame();
