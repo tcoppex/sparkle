@@ -43,14 +43,25 @@ public:
 
   struct SimulationParameters_t {
     float time_step_factor = 1.0f;
-    float min_age = 0.1f;
-    float max_age = 0.2f;
+    float min_age = 50.0f;
+    float max_age = 100.0f;
     EmitterType emitter_type = EmitterType::EMITTER_SPHERE;
     float emitter_position[3]  = { 0.0f, 0.0f, 0.0f };
     float emitter_direction[3] = { 0.0f, 1.0f, 0.0f };
-    float emitter_radius = 64.0f;
-    SimulationVolume bounding_volume = SimulationVolume::VOLUME_BOX;
+    float emitter_radius = 32.0f;
+    SimulationVolume bounding_volume = SimulationVolume::VOLUME_SPHERE;
     float bounding_volume_size = kDefaultSimulationVolumeSize;
+
+    float scattering_factor = 1.0f;
+    float vectorfield_factor = 1.0f;
+    float curlnoise_factor = 16.0f;
+    float curlnoise_scale = 128.0f;
+    float velocity_factor = 8.0f;
+
+    bool enable_scattering = false;
+    bool enable_vectorfield = false;
+    bool enable_curlnoise = true;
+    bool enable_velocity_control = true;
   };
 
   enum RenderMode {
@@ -66,14 +77,14 @@ public:
   };
 
   struct RenderingParameters_t {
-    RenderMode rendermode = RENDERMODE_POINTSPRITE;
+    RenderMode rendermode = RENDERMODE_STRETCHED;
     float stretched_factor = 10.0f;
     ColorMode colormode = COLORMODE_DEFAULT;
     float birth_gradient[4] = { 0.0f, 1.0f, 0.0f, 1.0f };
     float death_gradient[4] = { 1.0f, 0.0f, 0.0f, 0.0f };
     float min_size = 0.75f;
     float max_size = 25.0f;
-    float fading_factor = 0.5f;
+    float fading_factor = 0.35f;
   };
 
   GPUParticle() :
@@ -115,8 +126,8 @@ private:
   static unsigned int const kThreadsGroupWidth;
 
   // [USER DEFINED]
-  static unsigned int const kMaxParticleCount   = (1u << 16u);
-  static unsigned int const kBatchEmitCount     = std::max(256u, (kMaxParticleCount >> 4u));
+  static unsigned int const kMaxParticleCount = (1u << 18u);
+  static unsigned int const kBatchEmitCount   = std::max(256u, (kMaxParticleCount >> 4u));
 
   static
   unsigned int GetThreadsGroupCount(unsigned int const nthreads) {
@@ -170,6 +181,16 @@ private:
       GLint vectorFieldSampler;
       GLint bboxSize;
       GLint boundingVolume;
+
+      GLint scatteringFactor;
+      GLint vectorFieldFactor;
+      GLint curlNoiseFactor;
+      GLint curlNoiseScale;
+      GLint velocityFactor;
+      GLint enableScattering;
+      GLint enableVectorField;
+      GLint enableCurlNoise;
+      GLint enableVelocityControl;
     } simulation;
     struct {
       GLint view;
@@ -193,7 +214,7 @@ private:
       GLint colorMode;
       GLint birthGradient;
       GLint deathGradient;
-      GLint spriteSizeRatio;
+      GLint spriteStretchFactor;
       GLint fadeCoefficient;
     } render_stretched_sprite;
   } ulocation_;                                   //< Programs uniform location.

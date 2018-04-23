@@ -109,15 +109,15 @@ void GPUParticle::init() {
   pgm_.sort_step    = CreateComputeProgram(SHADERS_DIR "/sparkle/cs_sort_step.glsl", src_buffer);
   pgm_.sort_final   = CreateComputeProgram(SHADERS_DIR "/sparkle/cs_sort_final.glsl", src_buffer);
   pgm_.render_point_sprite = CreateRenderProgram(
-        SHADERS_DIR "/sparkle/vs_generic.glsl",
-        SHADERS_DIR "/sparkle/fs_point_sprite.glsl",
-        src_buffer
+    SHADERS_DIR "/sparkle/vs_generic.glsl",
+    SHADERS_DIR "/sparkle/fs_point_sprite.glsl",
+    src_buffer
   );
   pgm_.render_stretched_sprite = CreateRenderProgram(
-        SHADERS_DIR "/sparkle/vs_generic.glsl",
-        SHADERS_DIR "/sparkle/gs_stretched_sprite.glsl",
-        SHADERS_DIR "/sparkle/fs_stretched_sprite.glsl",
-        src_buffer
+    SHADERS_DIR "/sparkle/vs_generic.glsl",
+    SHADERS_DIR "/sparkle/gs_stretched_sprite.glsl",
+    SHADERS_DIR "/sparkle/fs_stretched_sprite.glsl",
+    src_buffer
   );
   delete [] src_buffer;
 
@@ -134,6 +134,15 @@ void GPUParticle::init() {
   ulocation_.simulation.vectorFieldSampler = GetUniformLocation(pgm_.simulation, "uVectorFieldSampler");
   ulocation_.simulation.bboxSize           = GetUniformLocation(pgm_.simulation, "uBBoxSize");
   ulocation_.simulation.boundingVolume     = GetUniformLocation(pgm_.simulation, "uBoundingVolume");
+  ulocation_.simulation.scatteringFactor   = GetUniformLocation(pgm_.simulation, "uScatteringFactor");
+  ulocation_.simulation.vectorFieldFactor  = GetUniformLocation(pgm_.simulation, "uVectorFieldFactor");
+  ulocation_.simulation.curlNoiseFactor    = GetUniformLocation(pgm_.simulation, "uCurlNoiseFactor");
+  ulocation_.simulation.curlNoiseScale     = GetUniformLocation(pgm_.simulation, "uCurlNoiseScale");
+  ulocation_.simulation.velocityFactor     = GetUniformLocation(pgm_.simulation, "uVelocityFactor");
+  ulocation_.simulation.enableScattering   = GetUniformLocation(pgm_.simulation, "uEnableScattering");
+  ulocation_.simulation.enableVectorField  = GetUniformLocation(pgm_.simulation, "uEnableVectorField");
+  ulocation_.simulation.enableCurlNoise    = GetUniformLocation(pgm_.simulation, "uEnableCurlNoise");
+  ulocation_.simulation.enableVelocityControl = GetUniformLocation(pgm_.simulation, "uEnableVelocityControl");
 
   ulocation_.calculate_dp.view  = GetUniformLocation(pgm_.calculate_dp, "uViewMatrix");
 
@@ -153,7 +162,7 @@ void GPUParticle::init() {
   ulocation_.render_stretched_sprite.colorMode       = GetUniformLocation(pgm_.render_stretched_sprite, "uColorMode");
   ulocation_.render_stretched_sprite.birthGradient   = GetUniformLocation(pgm_.render_stretched_sprite, "uBirthGradient");
   ulocation_.render_stretched_sprite.deathGradient   = GetUniformLocation(pgm_.render_stretched_sprite, "uDeathGradient");
-  ulocation_.render_stretched_sprite.spriteSizeRatio = GetUniformLocation(pgm_.render_stretched_sprite, "uSpriteSizeRatio");
+  ulocation_.render_stretched_sprite.spriteStretchFactor = GetUniformLocation(pgm_.render_stretched_sprite, "uSpriteStretchFactor");
   ulocation_.render_stretched_sprite.fadeCoefficient = GetUniformLocation(pgm_.render_stretched_sprite, "uFadeCoefficient");
 
   /* One time uniform setting */
@@ -234,7 +243,7 @@ void GPUParticle::update(const float dt, glm::mat4x4 const& view) {
   unsigned int const num_dead_particles = pbuffer_->element_count() - num_alive_particles_;
   /* Number of particles to be emitted. */
   unsigned int const emit_count = std::min(kBatchEmitCount, num_dead_particles); //
-
+  /* Simulation deltatime depends on application framerate and the user input */
   float const time_step = dt * simulation_params_.time_step_factor;
 
   /* Update random buffer with new values */
@@ -276,7 +285,7 @@ void GPUParticle::render(glm::mat4x4 const& view, glm::mat4x4 const& viewProj) {
       glUniform1f(ulocation_.render_stretched_sprite.colorMode, rendering_params_.colormode);
       glUniform3fv(ulocation_.render_stretched_sprite.birthGradient, 1, rendering_params_.birth_gradient);
       glUniform3fv(ulocation_.render_stretched_sprite.deathGradient, 1, rendering_params_.death_gradient);
-      glUniform1f(ulocation_.render_stretched_sprite.spriteSizeRatio, rendering_params_.stretched_factor);
+      glUniform1f(ulocation_.render_stretched_sprite.spriteStretchFactor, rendering_params_.stretched_factor);
       glUniform1f(ulocation_.render_stretched_sprite.fadeCoefficient, rendering_params_.fading_factor);
     break;
 
@@ -398,11 +407,9 @@ void GPUParticle::_emission(const unsigned int count) {
   if (!count) {
     return;
   }
-  /*
   if (count < kBatchEmitCount) {
-    return;
+    //return;
   }
-  */
   //fprintf(stderr, "> %7u particles to emit.\n", count);
 
   glUseProgram(pgm_.emission);
@@ -457,6 +464,18 @@ void GPUParticle::_simulation(float const time_step) {
     glUniform1i(ulocation_.simulation.vectorFieldSampler, 0);
     glUniform1i(ulocation_.simulation.boundingVolume, simulation_params_.bounding_volume);
     glUniform1f(ulocation_.simulation.bboxSize, simulation_params_.bounding_volume_size);
+
+    glUniform1f(ulocation_.simulation.scatteringFactor, simulation_params_.scattering_factor);
+    glUniform1f(ulocation_.simulation.vectorFieldFactor, simulation_params_.vectorfield_factor);
+    glUniform1f(ulocation_.simulation.curlNoiseFactor, simulation_params_.curlnoise_factor);
+    const float inv_curlnoise_scale = 1.0f / simulation_params_.curlnoise_scale;
+    glUniform1f(ulocation_.simulation.curlNoiseScale, inv_curlnoise_scale);
+    glUniform1f(ulocation_.simulation.velocityFactor, simulation_params_.velocity_factor);
+
+    glUniform1i(ulocation_.simulation.enableScattering, simulation_params_.enable_scattering);
+    glUniform1i(ulocation_.simulation.enableVectorField, simulation_params_.enable_vectorfield);
+    glUniform1i(ulocation_.simulation.enableCurlNoise, simulation_params_.enable_curlnoise);
+    glUniform1i(ulocation_.simulation.enableVelocityControl, simulation_params_.enable_velocity_control);
 
     glBindBuffer(GL_DISPATCH_INDIRECT_BUFFER, gl_indirect_buffer_id_);
       glDispatchComputeIndirect(0);
