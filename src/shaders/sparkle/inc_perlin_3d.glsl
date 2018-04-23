@@ -19,6 +19,9 @@ float fbm_pnoise(in vec3 pt,
                  const float frequency, 
                  const float amplitude);
 
+// Classical Perlin Noise fbm 3D with predefined parameters
+float fbm_3d(in vec3 ws);
+
 // ----------------------------------------------------------------------------
 
 
@@ -146,7 +149,6 @@ float fbm_pnoise(in vec3 pt,
   return sum;
 }
 
-/*
 float fbm_3d(in vec3 ws) {
   const float N = 128.0f;
   const float zoom = 1/N;
@@ -156,7 +158,6 @@ float fbm_3d(in vec3 ws) {
 
   return N * fbm_pnoise(ws, zoom, octave, freq, w);
 }
-*/
 
 // ----------------------------------------------------------------------------
 
