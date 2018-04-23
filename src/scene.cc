@@ -57,6 +57,7 @@ void Scene::deinit() {
 
 void Scene::update(glm::mat4x4 const &view, float const dt) {
   if (debug_parameters_.freeze) {
+    // BUG: this will prevent particles to be sorted for rendering when needed.
     return;
   }
   gpu_particle_->update(dt, view);
@@ -92,7 +93,7 @@ void Scene::render(glm::mat4x4 const &view, glm::mat4x4 const& viewProj) {
     gpu_particle_->enable_sorting(true);
   }
 
-  // Debug emitter object.
+  // Emitters.
   if (debug_parameters_.show_emitter) {
     const float radius = simulation_parameters.emitter_radius;
     glm::vec3 scale(1.0f);
@@ -103,6 +104,7 @@ void Scene::render(glm::mat4x4 const &view, glm::mat4x4 const& viewProj) {
       break;
 
       case GPUParticle::EMITTER_SPHERE:
+      case GPUParticle::EMITTER_BALL:
         scale = glm::vec3(radius);
       break;
 
@@ -119,10 +121,10 @@ void Scene::render(glm::mat4x4 const &view, glm::mat4x4 const& viewProj) {
     draw_sphere(mvp, color, true);
   }
 
-  // Particles
+  // Particles.
   gpu_particle_->render(view, viewProj);
 
-  // Bounding and test volumes
+  // Bounding and test volumes.
   glEnable(GL_DEPTH_TEST);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -151,7 +153,7 @@ void Scene::render(glm::mat4x4 const &view, glm::mat4x4 const& viewProj) {
     }
   }
 
-  // -- Vector field bounding box
+  // Vector field bounding box.
 #if 0
   glm::vec3 const& dim = gpu_particle_->vectorfield_dimensions();
   mvp = glm::scale(viewProj, glm::vec3(dim.x, dim.y, dim.z));
