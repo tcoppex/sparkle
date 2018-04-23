@@ -91,7 +91,8 @@ void CreateParticle(const uint gid) {
   // Position
   vec3 pos = uEmitterPosition;
   if (uEmitterType == 1) {
-    pos += disk_distribution(uEmitterRadius, rn.xy);
+    //pos += disk_distribution(uEmitterRadius, rn.xy);
+    pos += disk_even_distribution(uEmitterRadius, gid, uEmitCount);
   } else if (uEmitterType == 2) {
     pos += sphere_distribution(uEmitterRadius, rn.xy);
   } else if (uEmitterType == 3) {
@@ -107,8 +108,9 @@ void CreateParticle(const uint gid) {
   const float group_rand = randbuffer[gl_WorkGroupID.x];
   // [As the threadgroup are not full, some dead particles might appears if not
   // skipped in following stages].
-  //const float single_rand = randbuffer[gid];
-  const float age = mix( uParticleMinAge, uParticleMaxAge, group_rand);
+  const float single_rand = randbuffer[gid];
+
+  const float age = mix( uParticleMinAge, uParticleMaxAge, single_rand);
 
   PushParticle(pos, vel, age);
 }
