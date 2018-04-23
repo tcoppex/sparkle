@@ -3,34 +3,39 @@
 // ============================================================================
 
 /* Second Stage of the particle system :
- * - Update particle position and velocity,
- * - Apply curl noise,
- * - Apply vector field,
+ * - Calculate forces (eg. curl noise, vector field, ..),
  * - Performs time integration,
  * - Handle collision detection,
+ * - Update particle position and velocity,
  */
 
 // ============================================================================
-
 
 #include "sparkle/interop.h"
 #include "sparkle/inc_curlnoise.glsl"
 
 // ----------------------------------------------------------------------------
 
-#define ENABLE_SCATTERING         0
-#define ENABLE_VECTORFIELD        0
-#define ENABLE_CURLNOISE          1
-
-// ----------------------------------------------------------------------------
-
 // Time integration step.
 uniform float uTimeStep;
+
 // Vector field sampler.
 uniform sampler3D uVectorFieldSampler;
+
 // Simulation volume.
 uniform int uBoundingVolume;
 uniform float uBBoxSize;
+
+uniform float uScatteringFactor;
+uniform float uVectorFieldFactor;
+uniform float uCurlNoiseFactor;
+uniform float uCurlNoiseScale;
+uniform float uVelocityFactor;
+
+uniform bool uEnableScattering;
+uniform bool uEnableVectorField;
+uniform bool uEnableCurlNoise;
+uniform bool uEnableVelocityControl;
 
 // ----------------------------------------------------------------------------
 
@@ -44,8 +49,7 @@ uniform atomic_uint write_count;
 
 #if SPARKLE_USE_SOA_LAYOUT
 
-// READ BUFFERs
-
+// READ
 layout(std430, binding = STORAGE_BINDING_PARTICLE_POSITIONS_A)
 readonly buffer PositionBufferA {
   vec4 read_positions[];
@@ -59,8 +63,7 @@ readonly buffer AttributeBufferA {
   vec4 read_attributes[];
 };
 
-// WRITE BUFFERs
-
+// WRITE
 layout(std430, binding = STORAGE_BINDING_PARTICLE_POSITIONS_B)
 writeonly buffer PositionBufferB {
   vec4 write_positions[];
@@ -74,14 +77,15 @@ writeonly buffer AttributeBufferB {
   vec4 write_attributes[];
 };
 
-
 #else
 
+// READ
 layout(std430, binding = STORAGE_BINDING_PARTICLES_FIRST)
 readonly buffer ParticleBufferA {
   TParticle read_particles[];
 };
 
+// WRITE
 layout(std430, binding = STORAGE_BINDING_PARTICLES_SECOND)
 writeonly buffer ParticleBufferB {
   TParticle write_particles[];
@@ -131,11 +135,11 @@ void PushParticle(in TParticle p) {
 
 // ----------------------------------------------------------------------------
 
-float UpdateAge(in const TParticle p) {
-  const float decay = 0.01*uTimeStep;
-  float age = clamp(p.age - decay, 0.0f, p.start_age);
-  return age;
+float GetUpdatedAge(in const TParticle p) {
+  return clamp(p.age - uTimeStep, 0.0f, p.start_age);
 }
+
+// ----------------------------------------------------------------------------
 
 void UpdateParticle(inout TParticle p,
                     in vec3 pos,
@@ -148,26 +152,22 @@ void UpdateParticle(inout TParticle p,
 
 // ----------------------------------------------------------------------------
 
-vec3 ApplyForces() {
-  vec3 force = vec3(0.0f);
-
-#if ENABLE_SCATTERING
-  // Add a random force to each particles.
-  const float scattering = 0.45f;
+vec3 CalculateScattering() {
+  if (!uEnableScattering) {
+    return vec3(0.0f);
+  }
   const uint gid = gl_GlobalInvocationID.x;
-  vec3 randforce = 2.0f * vec3(randbuffer[gid], randbuffer[gid+1u], randbuffer[gid+2u]) - 1.0f;
-  force += scattering * randforce;
-#endif
-
-  return force;
+  vec3 randforce = vec3(randbuffer[gid], randbuffer[gid+1u], randbuffer[gid+2u]);
+       randforce = 2.0f * randforce - 1.0f;
+  return uScatteringFactor * randforce;
 }
 
 // ----------------------------------------------------------------------------
 
-vec3 ApplyRepulsion(in const TParticle p) {
-
+vec3 CalculateRepulsion(in const TParticle p) {
   vec3 push = vec3(0.0f);
-/*
+
+  /*
   // IDEA
   const vec3 vel = p.velocity.xyz;
   const vec3 pos = p.position.xyz;
@@ -179,13 +179,14 @@ vec3 ApplyRepulsion(in const TParticle p) {
   push = coeff * (n);
   //vec3 side = cross(cross(n, normalize(vel + vec3(1e-5))), n);
   //push = mix(push, side, coeff*coeff);
-*/
+  */
+
   return push;
 }
 
 // ----------------------------------------------------------------------------
 
-vec3 ApplyTargetMesh(in const TParticle p) {
+vec3 CalculateTargetMesh(in const TParticle p) {
   vec3 pull = vec3(0.0f);
 
   /*
@@ -205,39 +206,41 @@ vec3 ApplyTargetMesh(in const TParticle p) {
 
 // ----------------------------------------------------------------------------
 
-vec3 ApplyVectorField(in const TParticle p) {
-  vec3 vfield = vec3(0.0f);
+vec3 CalculateVectorField(in const TParticle p) {
+  if (!uEnableVectorField) {
+    return vec3(0.0f);
+  }
 
-#if ENABLE_VECTORFIELD
-  const vec3 pt = p.position.xyz;
+  const vec3 extent = 0.5f * vec3(textureSize(uVectorFieldSampler, 0).xyz);
+  const vec3 texcoord = (p.position.xyz + extent) / (2.0f * extent);
+  vec3 vfield = texture(uVectorFieldSampler, texcoord).xyz;
 
-  const ivec3 texsize = textureSize(uVectorFieldSampler, 0).xyz;
-  const vec3 extent = 0.5f * vec3(texsize.x, texsize.y, texsize.z);
-  const vec3 texcoord = (pt + extent) / (2.0f * extent);
-
-  vfield = texture(uVectorFieldSampler, texcoord).xyz;
-
-  /* Custom GL_CLAMP_TO_BORDER */
-  vec3 clamp_to_border = step(-extent, pt) * step(pt, +extent);
-  bool b = any(lessThan(clamp_to_border, vec3(1.0f)));
-  vfield = mix(vfield, vec3(0.0f), float(b));
-#endif
-
-  return vfield;
+  return uVectorFieldFactor * vfield;
 }
 
 // ----------------------------------------------------------------------------
 
-vec3 GetCurlNoise(in const TParticle p) {
-  vec3 curl = vec3(0.0f);
+vec3 CalculateCurlNoise(in const TParticle p) {
+  if (!uEnableCurlNoise) {
+    return vec3(0.0f);
+  }
+  vec3 curl_velocity = compute_curl(p.position.xyz * uCurlNoiseScale);
+  return uCurlNoiseFactor * curl_velocity;
+}
 
-#if ENABLE_CURLNOISE
-  const float effect = 5.0f;
-  const float scale = 1.0f / 128.0f;
-  curl = effect * compute_curl(p.position.xyz * scale);
-#endif
 
-  return curl;
+// ----------------------------------------------------------------------------
+
+vec3 CalculateForces(in const TParticle p) {
+  vec3 force = vec3(0.0f);
+
+  force += CalculateScattering();
+  force += CalculateRepulsion(p);
+  force += CalculateTargetMesh(p);
+  force += CalculateVectorField(p);
+  force += CalculateCurlNoise(p);
+
+  return force;
 }
 
 // ----------------------------------------------------------------------------
@@ -296,6 +299,7 @@ void CollisionHandling(inout vec3 pos, inout vec3 vel) {
   const float r = 0.5f * uBBoxSize;
 
   if (uBoundingVolume == 0) CollideSphere(r, vec3(0.0f), pos, vel);
+  else
   if (uBoundingVolume == 1) CollideBox(vec3(r), vec3(0.0f), pos, vel);
 }
 
@@ -303,49 +307,37 @@ void CollisionHandling(inout vec3 pos, inout vec3 vel) {
 
 layout(local_size_x = PARTICLES_KERNEL_GROUP_WIDTH) in;
 void main() {
-  const vec3 dt = vec3(uTimeStep);
-
   // Local copy of the particle.
   TParticle p = PopParticle();
 
-  // Update age
-  /// [ dead particles still have a positive age, but are not push in render buffer.
-  ///   Still set their age to zero ? ]
-  float age = UpdateAge(p);
+  float age = GetUpdatedAge(p);
 
   if (age > 0.0f) {
-    // Apply external forces.
-    vec3 force = ApplyForces();
+    // Calculate external forces.
+    vec3 force = CalculateForces(p);
 
-    // Apply repulsions on simple objects.
-    force += ApplyRepulsion(p);
-
-    // Apply mesh targeting.
-    force += ApplyTargetMesh(p);
-
-    // Apply vector field.
-    force += ApplyVectorField(p);
+    // Integrations vectors.
+    const vec3 dt = vec3(uTimeStep);
+    vec3 velocity = p.velocity.xyz;
+    vec3 position = p.position.xyz;
 
     // Integrate velocity.
-    vec3 vel = fma(force, dt, p.velocity.xyz);
+    velocity = fma(force, dt, velocity);
 
-    // Get curling noise.
-    vec3 noise_vel = GetCurlNoise(p);
-
-    // ----------
-    vel = mix(vel, noise_vel, 0.25);
-    vel = 16.0*normalize(vel);//
-    // ----------
+    if (uEnableVelocityControl) {
+      velocity = uVelocityFactor * normalize(velocity);
+    }
 
     // Integrate position.
-    vec3 pos = fma(vel + 0.0*noise_vel, dt, p.position.xyz);
+    position = fma(velocity, dt, position);
 
-    // Handle collision.
-    CollisionHandling(pos, vel);
+    // Handle collisions.
+    CollisionHandling(position, velocity);
 
-    // Update particle.
-    UpdateParticle(p, pos, vel, age);
+    // Update the particle.
+    UpdateParticle(p, position, velocity, age);
+
+    // Save it in buffer.
     PushParticle(p);
   }
-
 }
