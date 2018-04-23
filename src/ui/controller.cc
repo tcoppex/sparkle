@@ -6,6 +6,7 @@
 #include "opengl.h"
 #include "ui/view.h"
 
+
 void UIController::init(GLFWwindow* window) {
   window_ptr_ = window;
 
@@ -13,7 +14,6 @@ void UIController::init(GLFWwindow* window) {
   ImGuiIO& io = ImGui::GetIO();
 
   io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
-  //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
   io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;
   io.BackendFlags |= ImGuiBackendFlags_HasSetMousePos;
 
@@ -47,8 +47,6 @@ void UIController::init(GLFWwindow* window) {
 #ifdef _WIN32
   //io.ImeWindowHandle = glfwGetWin32Window(window_ptr_);
 #endif
-
-  setup_callbacks();
 
   // Setup style.
   ImGui::StyleColorsDark();
@@ -153,6 +151,7 @@ void UIController::render() {
   if (!mainview_ptr_) {
     return;
   }
+
   mainview_ptr_->render();
   ImGui::Render();
   render_frame(ImGui::GetDrawData());
@@ -287,10 +286,6 @@ void UIController::render_frame(ImDrawData* draw_data) {
   glPolygonMode(GL_FRONT_AND_BACK, (GLenum)last_polygon_mode[0]);
   glViewport(last_viewport[0], last_viewport[1], last_viewport[2], last_viewport[3]);
   glScissor(last_scissor_box[0], last_scissor_box[1], last_scissor_box[2], last_scissor_box[3]);
-}
-
-void UIController::setup_callbacks() {
-  // Conflict with events.cc own callbacks.
 }
 
 /// --------------------------------------------------------------------------

@@ -23,7 +23,6 @@ class UIController {
   }
 
  private:
-  void setup_callbacks();
   void create_device_objects();
   void destroy_device_objects();
   void create_font_texture();
