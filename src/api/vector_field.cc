@@ -17,13 +17,14 @@ void VectorField::initialize(unsigned int const width, unsigned int const height
   /// Velocity fields are 3d textures where only particles in the texture volume
   /// are affected. Therefore particles outside the volume should be clamped to
   /// zeroes when the texture is sampled.
-  /// However there is some strange and buggy behavior when specifying a border
-  /// of 3 or more values, so here only two are specified for the 3d texture.
-  /// Wrap mode is set to clamp_to_edge for now.
+  /// However sometimes there is a strange and buggy behavior when specifying
+  /// a border of 3 or more values.
+  /// This can be fixed by setting WrapMode to clamp_to_edge and simulating
+  /// clamp_to_border with specific shader code.
 
   GLint const filter_mode = GL_LINEAR;
-  GLint const wrap_mode = GL_CLAMP_TO_EDGE;
-  //GLfloat const border[4u] = {0.0f, 0.0f, 0.0f, 0.0f};
+  GLint const wrap_mode = GL_CLAMP_TO_BORDER;
+  GLfloat const border[4u] = {0.0f, 0.0f, 0.0f, 0.0f};
 
   glGenTextures(1u, &gl_texture_id_);
   glBindTexture(GL_TEXTURE_3D, gl_texture_id_);
@@ -32,7 +33,7 @@ void VectorField::initialize(unsigned int const width, unsigned int const height
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, wrap_mode);
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, wrap_mode);
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, wrap_mode);
-    //glTexParameterfv(GL_TEXTURE_3D, GL_TEXTURE_BORDER_COLOR, border);
+    glTexParameterfv(GL_TEXTURE_3D, GL_TEXTURE_BORDER_COLOR, border);
   glBindTexture(GL_TEXTURE_3D, 0u);
 
   CHECKGLERROR();
@@ -122,10 +123,7 @@ glm::vec3 VectorField::_generate_vector(glm::vec3 const& p) const {
 #else
   glm::vec3 pos = p - glm::vec3(0.5f);
   glm::vec3 v = glm::vec3(pos.y, -pos.x, 0.0f);
-
-  // Stangely, normalizing the value seems to bring error in the shader stage.
-  // (particle disappearing)
-  v = 10.0f*glm::normalize(v);
+  v = glm::normalize(v);
 #endif
 
   return v;
