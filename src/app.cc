@@ -75,9 +75,7 @@ bool App::init(char const* title) {
 
 void App::deinit() {
   scene_.deinit();
-
   ui_.deinit();
-
   glfwTerminate();
   window_ = nullptr;
 }
