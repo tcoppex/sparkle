@@ -37,11 +37,14 @@ float curve_inout(in float x, in float edge) {
   float b = maprange(edge, 1.0f, x);
 
   // Quadratic ease-in / quadratic ease-out.
-  float easein = a * (2.0f - a);         // a * a;
-  float easeout = 1.0f - b * b;          // b*b - 2.0f*b + 1.0f
+  float easein = a * (2.0f - a);        // a * a;
+  float easeout = b*b - 2.0f*b + 1.0f;  // 1.0f - b * b;
 
-  // Makes particles fade-in and out of existence.
-  return mix(easein, easeout, step(edge, x));
+  // chose between easin / easout function.
+  float result = mix(easein, easeout, step(edge, x));
+
+  // Makes particles fade-in and out of existence
+  return result;
 }
 
 // ----------------------------------------------------------------------------
@@ -76,7 +79,7 @@ void main() {
 
   // Time alived in [0, 1].
   const float dAge = 1.0f - maprange(0.0f, age_info.x, age_info.y);
-  const float decay = curve_inout(dAge, 0.52f);
+  const float decay = curve_inout(dAge, 0.55f);
 
   // Vertex attributes.
   gl_Position = uMVP * vec4(p, 1.0f);
