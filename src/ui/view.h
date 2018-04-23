@@ -1,6 +1,8 @@
 #ifndef SPARKLE_UI_UI_VIEW_H_
 #define SPARKLE_UI_UI_VIEW_H_
 
+#include <algorithm>
+
 /**
  * @brief Interface used to render User Interface View.
  */
@@ -23,6 +25,11 @@ class ParametrizedUIView : public UIView {
     {}
 
   protected:
+    template<typename TClampValue>
+    void Clamp(TClampValue &v, const TClampValue& min_value, const TClampValue& max_value) {
+      v = std::min(std::max(min_value, v), max_value);
+    }
+
     T& params_;
 };
 

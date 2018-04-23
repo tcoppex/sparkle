@@ -3,6 +3,16 @@
 
 namespace views {
 
+constexpr float Rendering::kParticleSizeStep;
+constexpr float Rendering::kParticleSizeMin;
+constexpr float Rendering::kParticleSizeMax;
+constexpr float Rendering::kStretchedFactorStep;
+constexpr float Rendering::kStretchedFactorMin;
+constexpr float Rendering::kStretchedFactorMax;
+constexpr float Rendering::kFadingFactorStep;
+constexpr float Rendering::kFadingFactorMin;
+constexpr float Rendering::kFadingFactorMax;
+
 const char *Rendering::kRenderModeDescriptions[] = {
   "Stretched", 
   "Pointsprite"
@@ -25,6 +35,7 @@ void Rendering::render() {
       case GPUParticle::RENDERMODE_STRETCHED:
         ImGui::DragFloat("Stretch factor", &params_.stretched_factor,
           kStretchedFactorStep, kStretchedFactorMin, kStretchedFactorMax);
+        Clamp(params_.stretched_factor, kStretchedFactorMin, kStretchedFactorMax);
         ImGui::Separator();
       break;
 
@@ -32,6 +43,8 @@ void Rendering::render() {
       default:
         ImGui::DragFloatRange2("Size", &params_.min_size, &params_.max_size,
           kParticleSizeStep, kParticleSizeMin, kParticleSizeMax, "Min: %.2f", "Max: %.2f");
+        Clamp(params_.min_size, kParticleSizeMin, kParticleSizeMax);
+        Clamp(params_.max_size, kParticleSizeMin, kParticleSizeMax);
         ImGui::Separator();
       break;
     }
@@ -50,7 +63,7 @@ void Rendering::render() {
 
     ImGui::DragFloat("Fading", &params_.fading_factor,
       kFadingFactorStep, kFadingFactorMin, kFadingFactorMax);
-
+    Clamp(params_.fading_factor, kFadingFactorMin, kFadingFactorMax);
     ImGui::TreePop();
   }
 

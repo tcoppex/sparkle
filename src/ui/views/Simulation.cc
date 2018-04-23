@@ -16,6 +16,13 @@ const char *Simulation::kSimulationVolumeDescriptions[] = {
   "None"
 };
 
+constexpr float Simulation::kTimestepFactorStep;
+constexpr float Simulation::kTimestepFactorMin;
+constexpr float Simulation::kTimestepFactorMax;
+constexpr float Simulation::kForceFactorStep;
+constexpr float Simulation::kForceFactorMin;
+constexpr float Simulation::kForceFactorMax;
+
 void Simulation::render() {
   if (!ImGui::CollapsingHeader("Simulation")) {
     return;
@@ -23,6 +30,7 @@ void Simulation::render() {
 
   ImGui::DragFloat("Timestep", &params_.time_step_factor,
     kTimestepFactorStep, kTimestepFactorMin, kTimestepFactorMax);
+  Clamp(params_.time_step_factor, kTimestepFactorMin, kTimestepFactorMax);
 
   if (ImGui::TreeNode("Emitter")) {
     ImGui::Combo("Type", reinterpret_cast<int*>(&params_.emitter_type),
@@ -54,6 +62,35 @@ void Simulation::render() {
     ImGui::TreePop();
   }
 
+  if (ImGui::TreeNode("Forces")) {
+    ImGui::Checkbox("Scattering", &params_.enable_scattering);
+    if (params_.enable_scattering) {
+      ImGui::DragFloat("scattering factor", &params_.scattering_factor,
+        kForceFactorStep, kForceFactorMin, kForceFactorMax);
+    }
+
+    ImGui::Checkbox("Vector field", &params_.enable_vectorfield);
+    if (params_.enable_vectorfield) {
+      ImGui::DragFloat("vectorfield factor", &params_.vectorfield_factor,
+        kForceFactorStep, kForceFactorMin, kForceFactorMax);
+    }
+
+    ImGui::Checkbox("Curl Noise", &params_.enable_curlnoise);
+    if (params_.enable_curlnoise) {
+      ImGui::DragFloat("curlnoise factor", &params_.curlnoise_factor,
+        kForceFactorStep, kForceFactorMin, kForceFactorMax);
+      ImGui::DragFloat("scale", &params_.curlnoise_scale,
+        kCurlnoiseScaleStep, kCurlnoiseScaleMin, kCurlnoiseScaleMax);
+    }
+
+    ImGui::Checkbox("Velocity Control", &params_.enable_velocity_control);
+    if (params_.enable_velocity_control) {
+      ImGui::DragFloat("velocity factor", &params_.velocity_factor,
+        kForceFactorStep, kForceFactorMin, kForceFactorMax);
+    }
+
+    ImGui::TreePop();
+  }
 }
 
 }  // namespace views
