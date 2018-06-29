@@ -13,6 +13,13 @@ addons:
       - g++-5
       - cmake
       - libglew-dev
+      - libxrandr-dev
+      - libxinerama-dev
+      - libxcb1-dev 
+      - libxcomposite-dev 
+      - libxcursor-dev 
+      - libxcomposite-dev 
+
 script:
   - sudo ln -s /usr/bin/gcc-5 /usr/local/bin/gcc
   - sudo ln -s /usr/bin/g++-5 /usr/local/bin/g++
