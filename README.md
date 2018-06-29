@@ -60,7 +60,7 @@ cmake --build . --target ALL_BUILD --config Release
 
  1. *Using CMake, the build configuration type (ie. Debug, Release) is set at Build Time with MSVC and at Cache Generation Time with Makefile.*
 
- 2. *OpenGL extensions are generated automatically by a custom [Python](https://www.python.org/downloads/) script.  Alternatively [GLEW](http://glew.sourceforge.net/) can be used by specifying the option `-DUSE_GLEW=ON` to CMake.*
+ 2. *OpenGL extensions are generated automatically by a custom [Python](https://www.python.org/downloads/) script.  Alternatively [GLEW](http://glew.sourceforge.net/) can be used by specifying the option `-DUSE_GLEW=ON` to CMake. __If something does not compile due to OpenGL functions, try to use GLEW.__*
 
 ### Run
 
@@ -68,6 +68,11 @@ The binary can be found in the project `./bin/` directory:
 ```bash
 ../bin/sparkle_demo
 ```
+
+*Dev Note:*
+
+ - *The development being done on GNU/Linux, it is primarly optimized for it. The MS Windows version is at this moment quite slow.* 
+
 
 [//]: # (## Directory structure)
 [//]: # (## Known bugs)
