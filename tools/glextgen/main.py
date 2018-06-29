@@ -47,7 +47,13 @@ def GenerateHeader(path, ext_declarations, defines):
     fd.write("#ifndef EXT_EXTENSIONS_H\n")
     fd.write("#define EXT_EXTENSIONS_H\n")
     fd.write('\n')
-    fd.write("#include \"GL/glcorearb.h\"\n")
+    fd.write('''
+#if defined(_WIN32)
+#include "GL/glcorearb.h"
+#else
+#include "GL/gl.h"
+#endif
+''');
     fd.write("#include \"GL/glext.h\"\n")
     fd.write('\n')
     fd.write('\n'.join(ext_declarations))
