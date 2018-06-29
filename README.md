@@ -1,6 +1,7 @@
 
 # Spärkle
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Build Status](https://travis-ci.org/tcoppex/sparkle.svg?branch=master)](https://travis-ci.org/tcoppex/sparkle)
 
 ![screenshot](https://i.imgur.com/TPVEcoe.png)
 
