@@ -115,8 +115,8 @@ if(USE_GLEW)
   endif()
 else()
   # Automatically generate header to load OpenGL extensions.
-  find_package(PythonInterp REQUIRED)
-  if(${PYTHONINTERP_FOUND})
+  find_package(PythonInterp)
+  if(PYTHONINTERP_FOUND AND PYTHON_EXECUTABLE)
     set(GLEXTGEN_PATH "${TOOLS}/glextgen")
     set(GLEXTGEN_OUTPUT_DIR "${SOURCE_DIR}/ext")
     list(APPEND GLEXTGEN_OUTPUTS
