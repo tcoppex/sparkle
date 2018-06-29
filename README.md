@@ -31,7 +31,7 @@ The following dependencies are pulled in as submodules.
 - [imgui 1.6](https://github.com/ocornut/imgui) as user interface.
 
 To retrieve them, type the following command line in the project directory :
-```
+```bash
 git submodule init
 git submodule update
 ```
@@ -40,18 +40,18 @@ git submodule update
 
 We will first create a build directory then generate the CMake cache depending on your system.
 
-```
+```bash
 mkdir BUILDs && cd BUILDs
 ```
 
 On **Unix**, using Makefile (*replace `$NUM_CPU` by the number of core you want to use*) :
-```
+```bash
 cmake .. -G Makefile -DCMAKE_BUILD_TYPE=Release
 make -j$NUM_CPU
 ```
 
 On **Windows**, using MSVC 15 for x64:
-```
+```bash
 cmake .. -G "Visual Studio 15 2017 Win64"
 cmake --build . --target ALL_BUILD --config Release
 ```
@@ -65,7 +65,7 @@ cmake --build . --target ALL_BUILD --config Release
 ### Run
 
 The binary can be found in the project `./bin/` directory:
-```
+```bash
 ../bin/sparkle_demo
 ```
 
