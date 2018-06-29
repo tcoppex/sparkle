@@ -222,7 +222,7 @@ GLuint CreateRenderProgram(char const* vsfile, char const* gsfile, char const* f
   /* Vertex Shader */
   vshader = glCreateShader(GL_VERTEX_SHADER);
   ReadShaderFile(vsfile, MAX_SHADER_BUFFERSIZE, src_buffer);
-  glShaderSource(vshader, 1, &src_buffer, nullptr);
+  glShaderSource(vshader, 1, (const GLchar**)&src_buffer, nullptr);
   glCompileShader(vshader);
   CheckShaderStatus(vshader, vsfile);
 
@@ -230,7 +230,7 @@ GLuint CreateRenderProgram(char const* vsfile, char const* gsfile, char const* f
   if (gsfile) {
     gshader = glCreateShader(GL_GEOMETRY_SHADER);
     ReadShaderFile(gsfile, MAX_SHADER_BUFFERSIZE, src_buffer);
-    glShaderSource(gshader, 1, &src_buffer, nullptr);
+    glShaderSource(gshader, 1, (const GLchar**)&src_buffer, nullptr);
     glCompileShader(gshader);
     CheckShaderStatus(gshader, gsfile);
   }
@@ -238,7 +238,7 @@ GLuint CreateRenderProgram(char const* vsfile, char const* gsfile, char const* f
   /* Fragment Shader */
   fshader = glCreateShader(GL_FRAGMENT_SHADER);
   ReadShaderFile(fsfile, MAX_SHADER_BUFFERSIZE, src_buffer);
-  glShaderSource(fshader, 1, &src_buffer, nullptr);
+  glShaderSource(fshader, 1, (const GLchar**)&src_buffer, nullptr);
   glCompileShader(fshader);
   CheckShaderStatus(fshader, fsfile);
 
