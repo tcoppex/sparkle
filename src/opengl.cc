@@ -262,7 +262,7 @@ GLuint CreateComputeProgram(char const* program_name, char *src_buffer) {
   GLuint pgm = 0u;
 
   ReadShaderFile(program_name, MAX_SHADER_BUFFERSIZE, src_buffer);
-  pgm = glCreateShaderProgramv(GL_COMPUTE_SHADER, 1, &src_buffer);
+  pgm = glCreateShaderProgramv(GL_COMPUTE_SHADER, 1, (const GLchar**)&src_buffer);
   if (!CheckProgramStatus(pgm, program_name)) {
     exit(EXIT_FAILURE);
   }
