@@ -21,12 +21,10 @@ addons:
       - libxcomposite-dev 
 
 script:
-  - echo `glewinfo | grep glCopyNamed`
   - sudo ln -s /usr/bin/gcc-5 /usr/local/bin/gcc
   - sudo ln -s /usr/bin/g++-5 /usr/local/bin/g++
   - export CC=/usr/bin/gcc-5
   - export CXX=/usr/bin/g++-5
-  - gcc -v && g++ -v && cmake --version
   - mkdir build && cd build
   - cmake ..
   - cmake --build .
